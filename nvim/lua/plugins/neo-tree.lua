@@ -14,7 +14,7 @@ return {
                     ["P"] = { "toggle_preview", config = { use_float = true, use_image_nvim = false } },
                     ['e'] = function() vim.api.nvim_exec('Neotree filesystem', true) end,
                     ['b'] = function() vim.api.nvim_exec('Neotree buffers', true) end,
-                    ['g'] = function() vim.api.nvim_exec('Neotree git_status', true) end,
+                    ['h'] = function() vim.api.nvim_exec('Neotree git_status', true) end,
                 },
                 position = "float",
             },
