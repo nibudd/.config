@@ -1,1 +1,1 @@
-return {"monokrome/vim-lazy-obsession"}
+return { "tpope/vim-obsession" }
