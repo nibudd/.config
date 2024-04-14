@@ -29,7 +29,7 @@ vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]])
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
 -- easier access to :nohlsearch
-vim.keymap.set("n", "<leader>hl", ":nohlsearch<CR>")
+vim.keymap.set("n", "<leader>nhl", ":nohlsearch<CR>")
 
 -- easier window navigation
 vim.keymap.set("n", "<C-S-H>", "<C-w><C-h>")
@@ -38,7 +38,7 @@ vim.keymap.set("n", "<C-S-K>", "<C-w><C-k>")
 vim.keymap.set("n", "<C-S-l>", "<C-w><C-l>")
 
 -- open help vertically
-vim.keymap.set("n", ":H", ":vert help ")
+vim.keymap.set("n", ":H", ":vert help")
 
 -- charwise-visual of the whole line
 vim.keymap.set("n", "vv", "_v$")

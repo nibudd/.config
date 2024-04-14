@@ -29,6 +29,10 @@ vim.opt.wrap = false
 vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
+-- search
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
 -- new split positions
 vim.opt.splitbelow = true
 vim.opt.splitright = true
