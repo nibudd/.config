@@ -42,3 +42,6 @@ vim.keymap.set("n", ":H", ":vert help")
 
 -- charwise-visual of the whole line
 vim.keymap.set("n", "vv", "_v$")
+
+-- lazy colon
+vim.keymap.set("n", "<leader><leader>", ":")
