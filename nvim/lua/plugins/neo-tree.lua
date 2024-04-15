@@ -52,6 +52,7 @@ return {
                         { "git_status", highlight = "NeoTreeDimText" },
                     },
                 },
+                hijack_netrw_behavior = "open_current",
             },
             default_component_configs = {
                 diagnostics = {
