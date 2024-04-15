@@ -1,3 +1,4 @@
+-- a modified lsp-zero configuration of nvim's LSP
 return {
     { 'williamboman/mason.nvim' },
     { 'williamboman/mason-lspconfig.nvim' },

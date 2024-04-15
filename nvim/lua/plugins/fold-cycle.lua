@@ -1,3 +1,4 @@
+-- convenient folding
 return {
     "jghauser/fold-cycle.nvim",
     config = function()

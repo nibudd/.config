@@ -1,3 +1,4 @@
+-- adds gitdiff feedback in the sign column
 return {
     "lewis6991/gitsigns.nvim",
     config = function()

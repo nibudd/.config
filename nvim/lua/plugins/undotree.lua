@@ -1,3 +1,4 @@
+-- explore and traverse the vim undo tree
 return {
 	"mbbill/undotree",
 	config = function()

@@ -1,4 +1,4 @@
--- super powerful tool for adding/changing/deleting surrounding pairs
+-- super-powerful tool for adding/changing/deleting surrounding pairs
 return {
     "kylechui/nvim-surround",
     version = "*", -- Use for stability; omit to use `main` branch for the latest features
