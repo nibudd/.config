@@ -9,6 +9,7 @@ return {
         config = function()
             local lsp_zero = require('lsp-zero')
 
+            ---@diagnostic disable-next-line: unused-local
             lsp_zero.on_attach(function(client, bufnr)
                 -- see :help lsp-zero-keybindings
                 -- to learn the available actions
@@ -28,6 +29,7 @@ return {
             })
 
             local cmp = require('cmp')
+            ---@diagnostic disable-next-line: unused-local
             local cmp_action = require('lsp-zero').cmp_action()
 
             cmp.setup({
