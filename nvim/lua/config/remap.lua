@@ -31,18 +31,5 @@ vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 -- easier access to :nohlsearch
 vim.keymap.set("n", "<leader>nhl", ":nohlsearch<CR>")
 
--- easier window navigation
-vim.keymap.set("n", "<C-S-H>", "<C-w><C-h>")
-vim.keymap.set("n", "<C-S-J>", "<C-w><C-j>")
-vim.keymap.set("n", "<C-S-K>", "<C-w><C-k>")
-vim.keymap.set("n", "<C-S-l>", "<C-w><C-l>")
-
--- lazy help 
-vim.keymap.set("n", "<leader>hh", ":help ")
-vim.keymap.set("n", "<leader>hv", ":vert help ")
-
--- charwise-visual of the whole line
+-- enter charwise-visual mode and select the whole line
 vim.keymap.set("n", "vv", "_v$")
-
--- lazy colon
-vim.keymap.set("n", "<leader><leader>", ":")
