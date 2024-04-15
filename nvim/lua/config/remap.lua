@@ -37,8 +37,9 @@ vim.keymap.set("n", "<C-S-J>", "<C-w><C-j>")
 vim.keymap.set("n", "<C-S-K>", "<C-w><C-k>")
 vim.keymap.set("n", "<C-S-l>", "<C-w><C-l>")
 
--- open help vertically
-vim.keymap.set("n", ":H", ":vert help")
+-- lazy help 
+vim.keymap.set("n", "<leader>hh", ":help ")
+vim.keymap.set("n", "<leader>hv", ":vert help ")
 
 -- charwise-visual of the whole line
 vim.keymap.set("n", "vv", "_v$")
