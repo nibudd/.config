@@ -29,7 +29,7 @@ vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]])
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true })
 
 -- easier access to :nohlsearch
-vim.keymap.set("n", "<leader>nhl", ":nohlsearch<CR>")
+vim.keymap.set("n", "<leader>nh", "<cmd>nohlsearch<CR>")
 
 -- enter charwise-visual mode and select the whole line
 vim.keymap.set("n", "vv", "_v$")
