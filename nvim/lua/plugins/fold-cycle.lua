@@ -10,15 +10,15 @@ return {
         })
 
         vim.keymap.set("n", "<Tab>",
-            function() return require("fold-cycle").close() end,
+            function() return fold_cycle.close() end,
             {silent = true, desc = "Fold-cycle: close folds"})
 
         vim.keymap.set("n", "<S-Tab>",
-            function() return require("fold-cycle").open() end,
+            function() return fold_cycle.open() end,
             {silent = true, desc = "Fold-cycle: open folds"})
 
         vim.keymap.set("n", "<M-Tab>",
-            function() return require("fold-cycle").toggle_all() end,
-            {remap = true, silent = true, desc = "Fold-cycle: close all folds"})
+            function() return fold_cycle.toggle_all() end,
+            {remap = true, silent = true, desc = "Fold-cycle: toggle all folds"})
     end
 }
