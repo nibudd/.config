@@ -13,7 +13,7 @@ return {
             window = {
                 mappings = {
                     ["P"] = { "toggle_preview", config = { use_float = true, use_image_nvim = false } },
-                    ['e'] = function() vim.api.nvim_exec('Neotree filesystem', true) end,
+                    ['e'] = function() vim.api.nvim_exec('Neotree filesystem reveal', true) end,
                     ['b'] = function() vim.api.nvim_exec('Neotree buffers', true) end,
                     ['h'] = function() vim.api.nvim_exec('Neotree git_status', true) end,
                 },
@@ -71,7 +71,7 @@ return {
                 },
             }
         })
-        vim.keymap.set("n", "<leader>ex", ":Neotree float<CR>")
+        vim.keymap.set("n", "<leader>ex", ":Neotree reveal<CR>")
     end
 }
 
