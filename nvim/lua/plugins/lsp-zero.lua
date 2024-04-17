@@ -23,7 +23,7 @@ return {
                     lsp_zero.default_setup,
                     lua_ls = function()
                         local lua_opts = lsp_zero.nvim_lua_ls()
-                    require("lspconfig").lua_ls.setup(lua_opts)
+                        require("lspconfig").lua_ls.setup(lua_opts)
                     end,
                 },
             })
@@ -40,6 +40,12 @@ return {
                 -- see :help lsp-zero-completion-keybindings
                 -- to learn the available actions
                 mapping = cmp.mapping.preset.insert({
+                    -- Enter key confirms completion item
+                    ['<CR>'] = cmp.mapping.confirm({ select = false }),
+
+                    -- Ctrl + space triggers completion menu
+                    ['<C-Space>'] = cmp.mapping.complete(),
+
                     -- ['<C-Space>'] = cmp.mapping.complete(),
                     -- ['<C-f>'] = cmp_action.luasnip_jump_forward(),
                     -- ['<C-b>'] = cmp_action.luasnip_jump_backward(),
