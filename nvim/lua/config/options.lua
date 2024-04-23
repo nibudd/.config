@@ -26,7 +26,6 @@ vim.opt.tabstop = 4
 vim.opt.wrap = false
 
 -- miscellaneous
-vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50
 
 -- search
