@@ -5,6 +5,10 @@ return {
     config = function ()
         require("lualine").setup({
             options = { theme = "catppuccin" },
+            sections = {
+                lualine_c = { "filename", "harpoon2" },
+                lualine_x = { "filetype" },
+            }
         })
     end
 }
