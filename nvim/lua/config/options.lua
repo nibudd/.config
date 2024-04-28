@@ -10,6 +10,8 @@ vim.opt.termguicolors = true
 
 -- cursor
 vim.opt.guicursor = ""
+vim.opt.cursorline = true
+vim.opt.cursorcolumn = true
 
 -- gutter
 vim.opt.number = true
