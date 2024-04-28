@@ -80,7 +80,7 @@ return {
                 map('n', '<leader>hp', gitsigns.preview_hunk)
                 map('n', '<leader>hb', gitsigns.reset_buffer_index)
                 map('n', '<leader>hd', gitsigns.diffthis)
-                map('n', '<leader>td', gitsigns.toggle_deleted)
+                map('n', '<leader>ht', gitsigns.toggle_deleted)
 
                 -- Text object
                 map({'o', 'x'}, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
