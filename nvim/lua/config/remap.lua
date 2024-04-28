@@ -20,7 +20,7 @@ vim.keymap.set({"n", "x"}, "<leader>y", "\"*y")
 vim.keymap.set("n", "<leader>Y", "\"*Y")
 
 -- easier no-yank deleting
-vim.keymap.set({"n", "x"}, "<leader>d", "\"*d")
+vim.keymap.set({"n", "x"}, "<leader>d", "\"_d")
 
 -- substitute under cursor
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]])
