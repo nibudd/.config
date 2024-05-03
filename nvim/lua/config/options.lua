@@ -37,3 +37,9 @@ vim.opt.smartcase = true
 -- new split positions
 vim.opt.splitbelow = true
 vim.opt.splitright = true
+
+-- folding
+vim.wo.foldlevel = 99
+vim.wo.foldenable = true
+vim.wo.foldmethod = "expr"
+vim.wo.foldexpr = "nvim_treesitter#foldexpr()"
