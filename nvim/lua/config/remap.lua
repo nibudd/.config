@@ -14,7 +14,10 @@ vim.keymap.set("n", "N", "Nzzzv", {desc="keep search selections centered and unf
 vim.keymap.set({"n", "x"}, "<leader>y", "\"*y", {desc="yank to the clipboard register"})
 vim.keymap.set("n", "<leader>Y", "\"*Y", {desc="yank line to the clipboard register"})
 
-vim.keymap.set({"n", "x"}, "<leader>d", "\"_d", {desc="no-yank deleting"})
+vim.keymap.set({"n", "x"}, "<leader>d", "\"_d", {desc="no-yank motion delete"})
+vim.keymap.set({"n", "x"}, "<leader>D", "\"_D", {desc="no-yank delete to end of line"})
+vim.keymap.set({"n", "x"}, "<leader>x", "\"_x", {desc="no-yank character delete"})
+vim.keymap.set({"n", "x"}, "<leader>X", "\"_X", {desc="no-yank backwards character delete"})
 
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]], {desc="open file-range substitute for word under cursor"})
 
