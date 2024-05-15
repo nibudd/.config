@@ -25,8 +25,11 @@ return {
             sections = {
                 lualine_a = { 'mode' },
                 lualine_b = {
-                    'branch',
-                    'diff',
+                    {
+                        "branch",
+                        separator = "",
+                    },
+                        'diff',
                     {
                         "harpoon2",
                         icon = '🪝',
@@ -37,6 +40,13 @@ return {
                     },
                 },
                 lualine_c = {
+                    {
+                        "filetype",
+                        colored = true, -- Displays filetype icon in color if set to true
+                        icon_only = true, -- Display only an icon for filetype
+                        icon = { align = 'right' }, -- Display filetype icon on the right hand side
+                        separator = "",
+                    },
                     {
                         "filename",
                         newfile_status = true,
@@ -74,15 +84,22 @@ return {
                         always_visible = false,  -- Show diagnostics even if there are none.
                     }
                 },
-                lualine_x = {
-                    "filetype",
-                },
+                lualine_x = { 'encoding', 'fileformat' },
                 lualine_y = { 'progress' },
                 lualine_z = { 'location' }
             },
             inactive_sections = {
                 lualine_a = {},
-                lualine_b = {},
+                lualine_b = {
+                    {
+                        "harpoon2",
+                        icon = '🪝',
+                        indicators = { "1", "2", "3", "4" },
+                        active_indicators = { "1️⃣", "2️⃣", "3️⃣", "4️⃣" },
+                        _separator = "  ",
+                        no_harpoon = "Harpoon not loaded",
+                    }
+                },
                 lualine_c = {
                     {
                         "filename",
@@ -101,22 +118,8 @@ return {
                 lualine_y = {},
                 lualine_z = {}
             },
-            tabline = {
-                lualine_a = {},
-                lualine_b = {},
-                lualine_c = {},
-                lualine_x = {},
-                lualine_y = {},
-                lualine_z = {}
-            },
-            winbar = {
-                lualine_a = {},
-                lualine_b = {},
-                lualine_c = {},
-                lualine_x = {},
-                lualine_y = {},
-                lualine_z = {}
-            },
+            tabline = {},
+            winbar = {},
             inactive_winbar = {},
             extensions = {}
         }
