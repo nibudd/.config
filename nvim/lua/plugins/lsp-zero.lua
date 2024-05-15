@@ -8,6 +8,7 @@ return {
         branch = 'v3.x',
         config = function()
             local lsp_zero = require('lsp-zero')
+            lsp_zero.extend_lspconfig()
 
             ---@diagnostic disable-next-line: unused-local
             lsp_zero.on_attach(function(client, bufnr)
