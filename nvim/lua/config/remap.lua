@@ -1,7 +1,7 @@
 vim.g.mapleader = " "
 
 vim.keymap.set("i", "jk", "<esc><cmd>update<CR>", { desc = "exit insert mode and update" })
-vim.keymap.set("n", "<leader>jk", "<cmd>update<CR>", { desc = "exit insert mode and update" })
+vim.keymap.set("n", "<leader>jk", "<cmd>update<CR>", { desc = "update from normal mode" })
 
 vim.keymap.set("x", "J", ":m '>+1<CR>gv=gv", { desc = "move selected lines down" })
 vim.keymap.set("x", "K", ":m '<-2<CR>gv=gv", { desc = "move selected lines up" })
