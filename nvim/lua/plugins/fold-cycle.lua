@@ -9,16 +9,16 @@ return {
             close_if_max_opened = false,   -- opening a fully open fold will close it
         })
 
-        vim.keymap.set("n", "<Tab>",
+        vim.keymap.set("n", "<S-Tab>",
             function() return fold_cycle.close() end,
             {silent = true, desc = "Fold-cycle: close folds"})
 
-        vim.keymap.set("n", "<S-Tab>",
+        vim.keymap.set("n", "<M-Tab>",
             function() return fold_cycle.open() end,
             {silent = true, desc = "Fold-cycle: open folds"})
 
-        vim.keymap.set("n", "<M-Tab>",
-            function() return fold_cycle.toggle_all() end,
-            {remap = true, silent = true, desc = "Fold-cycle: toggle all folds"})
+        -- vim.keymap.set("n", "<M-Tab>",
+        --     function() return fold_cycle.toggle_all() end,
+        --     {remap = true, silent = true, desc = "Fold-cycle: toggle all folds"})
     end
 }
