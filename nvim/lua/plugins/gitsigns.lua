@@ -84,7 +84,7 @@ return {
                     { desc = "reset hunk" }
                 )
                 map('n', '<leader>hS', gitsigns.stage_buffer, { desc = "stage buffer" })
-                map('n', '<leader>hu', gitsigns.undo_stage_hunk{ desc = "undo 'stage hunk'" })
+                map('n', '<leader>hu', gitsigns.undo_stage_hunk, { desc = "undo 'stage hunk'" })
                 map('n', '<leader>hR', gitsigns.reset_buffer, { desc = "reset buffer" })
                 map('n', '<leader>hp', gitsigns.preview_hunk, { desc = "preview hunk" })
                 map('n', '<leader>hb', gitsigns.reset_buffer_index, { desc = "reset buffer according to Git's index" })
