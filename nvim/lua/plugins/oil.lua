@@ -185,6 +185,6 @@ return {
             border = "rounded",
           },
         })
-        vim.keymap.set("n", "<leader>ex", "<cmd>lua require('oil').open_float()<CR>")
+        vim.keymap.set("n", "<leader>ex", "<cmd>lua require('oil').toggle_float()<CR>")
     end
 }
