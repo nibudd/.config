@@ -17,7 +17,7 @@ return {
             },
             args = { "--log-level", "DEBUG", "--quiet" },
             runner = "pytest",
-            python = require("venv-selector").get_active_path(),
+            python = require("venv-selector").python(),
           })
         }
       })
