@@ -17,8 +17,7 @@ return {
             },
             args = { "--log-level", "DEBUG", "--quiet" },
             runner = "pytest",
-            -- python = vim.fn.getcwd() .. "/venv/bin/python"
-            -- letting venv-python set the environment to use
+            python = require("venv-selector").get_active_path(),
           })
         }
       })
