@@ -1,5 +1,10 @@
 vim.g.mapleader = " "
 
+vim.keymap.set("n", "<C-S-h>", "<C-w>h", { desc = "move left one pane" })
+vim.keymap.set("n", "<C-S-j>", "<C-w>j", { desc = "move down one pane" })
+vim.keymap.set("n", "<C-S-k>", "<C-w>k", { desc = "move up one pane" })
+vim.keymap.set("n", "<C-S-l>", "<C-w>l", { desc = "move right one pane" })
+
 vim.keymap.set("i", "jk", "<esc><cmd>update<CR>", { desc = "exit insert mode and update" })
 vim.keymap.set("i", "jq", "<esc><cmd>update<CR><cmd>q<CR>", { desc = "exit insert mode, update, and quit" })
 vim.keymap.set("n", "<leader>jk", "<cmd>update<CR>", { desc = "update from normal mode" })
