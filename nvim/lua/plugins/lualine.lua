@@ -26,10 +26,26 @@ return {
                 lualine_a = { 'mode' },
                 lualine_b = {
                     {
-                        "branch",
+                        "filetype",
+                        colored = true, -- Displays filetype icon in color if set to true
+                        icon_only = true, -- Display only an icon for filetype
+                        icon = { align = 'right' }, -- Display filetype icon on the right hand side
                         separator = "",
                     },
-                        'diff',
+                    {
+                        "filename",
+                        newfile_status = true,
+                        padding = { right = 2 },
+                        path = 3,
+                        symbols = {
+                            modified = '✏️', -- Text to show when the file is modified.
+                            readonly = '🔎', -- Text to show when the file is non-modifiable or readonly.
+                            unnamed = '🫥', -- Text to show for unnamed buffers.
+                            newfile = '⭐️', -- Text to show for newly created file before first write
+                        }
+                    },
+                },
+                lualine_c = {
                     {
                         "harpoon2",
                         icon = '🪝',
@@ -39,7 +55,13 @@ return {
                         no_harpoon = "Harpoon not loaded",
                     },
                 },
-                lualine_c = {
+                lualine_x = {},
+                lualine_y = {},
+                lualine_z = {}
+            },
+            inactive_sections = {
+                lualine_a = { 'mode' },
+                lualine_b = {
                     {
                         "filetype",
                         colored = true, -- Displays filetype icon in color if set to true
@@ -59,6 +81,32 @@ return {
                             newfile = '⭐️', -- Text to show for newly created file before first write
                         }
                     },
+                },
+                lualine_c = {
+                    {
+                        "harpoon2",
+                        icon = '🪝',
+                        indicators = { "1", "2", "3", "4" },
+                        active_indicators = { "1️⃣", "2️⃣", "3️⃣", "4️⃣" },
+                        _separator = "  ",
+                        no_harpoon = "Harpoon not loaded",
+                    },
+                },
+                lualine_x = {},
+                lualine_y = {},
+                lualine_z = {}
+            },
+            tabline = {
+                lualine_a = {
+                    {
+                        "branch",
+                        separator = "",
+                    },
+                },
+                lualine_b = {
+                    'diff',
+                },
+                lualine_c = {
                     {
                         'diagnostics',
 
@@ -82,44 +130,21 @@ return {
                         colored = true,          -- Displays diagnostics status in color if set to true.
                         update_in_insert = true, -- Update diagnostics in insert mode.
                         always_visible = false,  -- Show diagnostics even if there are none.
-                    }
+                    },
+                    {
+                        "tabs",
+                        tab_max_length = 20,
+                        max_length = 100,
+                        mode = 2,
+                        path = 1,
+                    },
                 },
                 lualine_x = { 'encoding', 'fileformat' },
                 lualine_y = { 'progress' },
                 lualine_z = { 'location' }
             },
-            inactive_sections = {
-                lualine_a = {},
-                lualine_b = {
-                    {
-                        "harpoon2",
-                        icon = '🪝',
-                        indicators = { "1", "2", "3", "4" },
-                        active_indicators = { "1️⃣", "2️⃣", "3️⃣", "4️⃣" },
-                        _separator = "  ",
-                        no_harpoon = "Harpoon not loaded",
-                    }
-                },
-                lualine_c = {
-                    {
-                        "filename",
-                        newfile_status = true,
-                        padding = { right = 2 },
-                        path = 3,
-                        symbols = {
-                            modified = '✏️', -- Text to show when the file is modified.
-                            readonly = '🔎', -- Text to show when the file is non-modifiable or readonly.
-                            unnamed = '🫥', -- Text to show for unnamed buffers.
-                            newfile = '⭐️', -- Text to show for newly created file before first write
-                        }
-                    }
-                },
-                lualine_x = { 'location' },
-                lualine_y = {},
-                lualine_z = {}
+            winbar = {
             },
-            tabline = {},
-            winbar = {},
             inactive_winbar = {},
             extensions = {}
         }
