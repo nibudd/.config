@@ -6,6 +6,7 @@ return {
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim",
       "nvim-neotest/neotest-python",
+      "linux-cultist/venv-selector.nvim",
     },
     config = function()
       require("neotest").setup({
@@ -17,7 +18,7 @@ return {
             },
             args = { "--log-level", "DEBUG", "--quiet" },
             runner = "pytest",
-            python = require("venv-selector").python(),
+            -- python = require("venv-selector").python(),
           })
         }
       })
