@@ -60,3 +60,8 @@ vim.keymap.set('n',        's', '<Plug>(leap)')
 vim.keymap.set('n',        'S', '<Plug>(leap-from-window)')
 vim.keymap.set({'x', 'o'}, 's', '<Plug>(leap-forward)')
 vim.keymap.set({'x', 'o'}, 'S', '<Plug>(leap-backward)')
+
+vim.keymap.set("n", "<leader>lq", "<cmd>call setloclist(0, [], ' ', {'items': get(getqflist({'items': 1}), 'items')})<CR><cmd>cclose<CR><cmd>lopen<CR>", { desc = "copy quickfix list to local list" })
+vim.keymap.set("n", "<leader>ln", "<cmd>:lne<CR>", { desc = "move to the next local list item" })
+vim.keymap.set("n", "<leader>lb", "<cmd>:lp<CR>", { desc = "move to the previous local list item" })
+
