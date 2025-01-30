@@ -2,23 +2,21 @@ return {
   {
     "nvim-neotest/neotest",
     dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "nvim-lua/plenary.nvim",
-      "antoinemadec/FixCursorHold.nvim",
-      "nvim-neotest/neotest-python",
-      "linux-cultist/venv-selector.nvim",
+        "nvim-neotest/nvim-nio",
+        "nvim-lua/plenary.nvim",
+        "antoinemadec/FixCursorHold.nvim",
+        "nvim-treesitter/nvim-treesitter",
+        "nvim-neotest/neotest-python",
     },
     config = function()
       require("neotest").setup({
         adapters = {
           require("neotest-python")({
             dap = {
-              justMyCode = true,
-              console = "integratedTerminal",
+              justMyCode = false,
             },
             args = { "--log-level", "DEBUG", "--quiet" },
             runner = "pytest",
-            -- python = require("venv-selector").python(),
           })
         }
       })
