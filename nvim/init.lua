@@ -20,3 +20,10 @@ require("lazy").setup("plugins", {
     }
 }
 )
+
+vim.api.nvim_create_augroup('TypescriptReactCommentString', { clear = true })
+vim.api.nvim_create_autocmd('FileType', {
+  group = 'TypescriptReactCommentString',
+  pattern = 'typescriptreact',
+  command = 'setlocal commentstring=//\\ %s',
+})

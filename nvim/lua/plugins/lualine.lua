@@ -20,10 +20,14 @@ return {
                     statusline = 1000,
                     tabline = 1000,
                     winbar = 1000,
-                }
+                },
             },
             sections = {
-                lualine_a = { 'mode' },
+                lualine_a = {
+                    {
+                        "mode",
+                    },
+                },
                 lualine_b = {
                     {
                         "filetype",
@@ -42,7 +46,10 @@ return {
                             readonly = '🔎', -- Text to show when the file is non-modifiable or readonly.
                             unnamed = '🫥', -- Text to show for unnamed buffers.
                             newfile = '⭐️', -- Text to show for newly created file before first write
-                        }
+                        },
+                        fmt = function(val)
+                            return vim.api.nvim_get_current_buf().. " " .. val
+                        end
                     },
                 },
                 lualine_c = {
@@ -134,17 +141,16 @@ return {
                     {
                         "tabs",
                         tab_max_length = 20,
-                        max_length = 100,
+                        max_length = vim.o.columns,
                         mode = 2,
-                        path = 1,
+                        path = 0,
                     },
                 },
                 lualine_x = { 'encoding', 'fileformat' },
                 lualine_y = { 'progress' },
                 lualine_z = { 'location' }
             },
-            winbar = {
-            },
+            winbar = {},
             inactive_winbar = {},
             extensions = {}
         }
