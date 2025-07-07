@@ -86,7 +86,10 @@ return {
                             readonly = '🔎', -- Text to show when the file is non-modifiable or readonly.
                             unnamed = '🫥', -- Text to show for unnamed buffers.
                             newfile = '⭐️', -- Text to show for newly created file before first write
-                        }
+                        },
+                        fmt = function(val)
+                            return vim.api.nvim_get_current_buf().. " " .. val
+                        end
                     },
                 },
                 lualine_c = {
@@ -141,7 +144,7 @@ return {
                     {
                         "tabs",
                         tab_max_length = 20,
-                        max_length = vim.o.columns,
+                        max_length = vim.o.columns * 0.8,
                         mode = 2,
                         path = 0,
                     },
