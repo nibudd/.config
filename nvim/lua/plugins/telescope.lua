@@ -10,8 +10,10 @@ return {
         vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
         vim.keymap.set('n', '<leader>gf', builtin.git_files, {})
 
-        -- list buffers
-        vim.keymap.set('n', '<leader>ls', builtin.buffers, {})
+        -- list buffers in order of last used
+        vim.keymap.set('n', '<leader>ls', function()
+            builtin.buffers({ sort_mru = true })
+        end, {})
 
         -- live grep 
         vim.keymap.set('n', '<leader>lg', builtin.live_grep, {})
