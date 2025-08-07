@@ -25,9 +25,9 @@ return {
     },
     lazy = false,
     branch = "regexp", -- This is the regexp branch, use this for the new version
-    config = function()
-        require("venv-selector").setup()
-    end,
+    -- config = function()
+    --     require("venv-selector").setup()
+    -- end,
     keys = {
         -- Keymap to open VenvSelector to pick a venv.
         { '<leader>vs', '<cmd>VenvSelect<cr>' },
@@ -35,5 +35,9 @@ return {
         { '<leader>vc', '<cmd>VenvSelectCached<cr>' },
         -- Keymap to display current venv
         { '<leader>vd', function () print(require("venv-selector").venv()) end },
+    },
+    ---@type venv-selector.Config
+    opts = {
+      -- Your settings go here
     },
 }
