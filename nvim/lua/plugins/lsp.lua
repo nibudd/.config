@@ -68,10 +68,10 @@ return {
             })
 
             local capabilities = require('cmp_nvim_lsp').default_capabilities()
-            local lspconfig = require("lspconfig")
+            -- local lspconfig = require("lspconfig")
             
             -- Setup lua_ls
-            lspconfig.lua_ls.setup({
+            vim.lsp.config['lua_ls'] = {
                 capabilities = capabilities,
                 settings = {
                     Lua = {
@@ -83,12 +83,12 @@ return {
                         telemetry = { enable = false },
                     },
                 },
-            })
+            }
 
             -- Setup pyright
-            lspconfig.pyright.setup({
+            vim.lsp.config['pyright'] = {
                 capabilities = capabilities,
-            })
+            }
 
             -- Add keymaps and test border functionality
             vim.api.nvim_create_autocmd("LspAttach", {
