@@ -104,6 +104,7 @@ return {
                     vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
                     vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
                     vim.keymap.set("n", "ge", vim.diagnostic.open_float, opts)
+                    vim.keymap.set("v", "gf", vim.lsp.buf.format, opts)
                     
                     -- Debug function to test borders
                     vim.keymap.set("n", "<leader>test", function()
