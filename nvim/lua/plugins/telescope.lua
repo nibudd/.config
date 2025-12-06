@@ -23,6 +23,8 @@ return {
             builtin.live_grep({ default_text = vim.fn.expand("<cword>") })
         end)
 
+        require('telescope').load_extension('fzf')
+
         -- more options @ https://github.com/nvim-telescope/telescope.nvim?tab=readme-ov-file#default-mappings
     end
 }
