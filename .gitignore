@@ -4,4 +4,6 @@ iterm2
 op
 pip
 Session.vim
-
+configstore
+gh
+github-copilot
