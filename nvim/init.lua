@@ -21,7 +21,7 @@ require("lazy").setup("plugins", {
 })
 
 -- clipboard for WSL
-vim.opt.clipboard = "unnamedplus"
+vim.opt.clipboard = ""
 if vim.fn.has("wsl") == 1 then
     vim.g.clipboard = {
         name = 'win32yank-wsl',
