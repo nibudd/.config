@@ -1,0 +1,16 @@
+- git: username, email
+- ssh key for github
+- clone .config repo
+- [mac] brew
+- [mac] unnatural scroll wheels
+- tmux, symlink config file
+- fd
+- nvim
+- nvm
+- nvm install [latest node version]
+- pyenv
+- [mac] xz
+- pyenv install [latest python version]
+- omz
+- p10k
+- fix nvim
