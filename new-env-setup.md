@@ -10,7 +10,9 @@
 - nvm install [latest node version]
 - pyenv
 - [mac] xz
+- [mac] cmake
 - pyenv install [latest python version]
 - omz
 - p10k
-- fix nvim
+- fix any straggling nvim things
+- make sure pyenv commands are still in .zshrc
