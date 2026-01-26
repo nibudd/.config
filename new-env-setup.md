@@ -16,3 +16,4 @@
 - p10k
 - fix any straggling nvim things
 - make sure pyenv commands are still in .zshrc
+- symlink zsh aliases file
