@@ -38,7 +38,7 @@ vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>//gI<Left><Left><Left>]],
 vim.keymap.set("n", "<leader>nh", "<cmd>nohlsearch<CR>", { desc = "set nohlsearch" })
 
 vim.keymap.set("n", "vv", "_v$", { desc = "charwise-visual selection of current line without leading whitespace" })
-vim.keymap.set("n", "gv", "ggVG", { desc = "select entire buffer" })
+vim.keymap.set("n", "<leader>va", "ggVG", { desc = "select entire buffer" })
 
 vim.keymap.set("n", "<leader>map",
     function()
