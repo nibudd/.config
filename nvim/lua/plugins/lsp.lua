@@ -1,7 +1,7 @@
 return {
     -- Mason
     {
-        "williamboman/mason.nvim",
+        "mason-org/mason.nvim",
         priority = 1000, -- Load first
         config = function()
             require("mason").setup()
@@ -10,9 +10,9 @@ return {
 
     -- Mason-lspconfig
     {
-        "williamboman/mason-lspconfig.nvim",
+        "mason-org/mason-lspconfig.nvim",
         priority = 999,
-        dependencies = { "williamboman/mason.nvim" },
+        dependencies = { "mason-org/mason.nvim" },
         config = function()
             require("mason-lspconfig").setup({
                 ensure_installed = { "lua_ls", "pyright" },
@@ -26,8 +26,8 @@ return {
         event = { "BufReadPre", "BufNewFile" },
         priority = 998,
         dependencies = {
-            "williamboman/mason.nvim",
-            "williamboman/mason-lspconfig.nvim",
+            "mason-org/mason.nvim",
+            "mason-org/mason-lspconfig.nvim",
             "hrsh7th/cmp-nvim-lsp",
         },
         config = function()
