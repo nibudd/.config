@@ -1,3 +1,4 @@
+-- standalone autocompletion engine with LSP support
 return {
   -- LSP Configuration
   {

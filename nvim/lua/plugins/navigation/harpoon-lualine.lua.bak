@@ -1,3 +1,4 @@
+-- harpoon status indicator for lualine
 return {
     "letieu/harpoon-lualine",
     dependencies = {

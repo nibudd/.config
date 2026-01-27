@@ -1,0 +1,2 @@
+-- GitHub Copilot AI code completion
+return { "github/copilot.vim" }
