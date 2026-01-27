@@ -40,16 +40,6 @@ vim.keymap.set("n", "<leader>nh", "<cmd>nohlsearch<CR>", { desc = "set nohlsearc
 vim.keymap.set("n", "vv", "_v$", { desc = "charwise-visual selection of current line without leading whitespace" })
 vim.keymap.set("n", "<leader>va", "ggVG", { desc = "select entire buffer" })
 
-vim.keymap.set("n", "<leader>map",
-    function()
-        vim.cmd("redir! > user-remaps.txt")
-        vim.cmd("silent map")
-        vim.cmd("redir END")
-        vim.cmd("edit user-remaps.txt")
-    end,
-    { desc = "open user-defined mappings in a buffer" }
-)
-
 vim.keymap.set("n", "<leader>%",
     function()
         vim.cmd([[let @f = expand("%:p")]])
