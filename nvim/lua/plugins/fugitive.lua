@@ -1,3 +1,4 @@
+-- git commands and integration
 return {
     "tpope/vim-fugitive",
     config = function()

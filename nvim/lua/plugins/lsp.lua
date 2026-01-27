@@ -1,3 +1,4 @@
+-- LSP configuration, mason installer, and autocompletion
 return {
     -- Mason
     {

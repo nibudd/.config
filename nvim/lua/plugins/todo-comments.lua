@@ -1,3 +1,4 @@
+-- highlights TODO, FIXME, and other comment annotations
 return {
   "folke/todo-comments.nvim",
   dependencies = { "nvim-lua/plenary.nvim" },

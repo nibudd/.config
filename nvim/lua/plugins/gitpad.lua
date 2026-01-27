@@ -1,3 +1,4 @@
+-- per-project and per-branch scratch notes
 return {
   'yujinyuz/gitpad.nvim',
   config = function()

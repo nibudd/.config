@@ -1,3 +1,4 @@
+-- debug adapter protocol client for interactive debugging
 return {
     "mfussenegger/nvim-dap",
     dependencies = {

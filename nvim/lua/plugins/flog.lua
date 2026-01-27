@@ -1,3 +1,4 @@
+-- git branch and commit graph viewer
 return {
     "rbong/vim-flog",
     dependencies = {

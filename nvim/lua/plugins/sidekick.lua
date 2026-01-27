@@ -1,3 +1,4 @@
+-- AI assistant integration with tmux support
 return {
   "folke/sidekick.nvim",
   opts = {

@@ -1,3 +1,4 @@
+-- toggle booleans and cycle through values with <C-a>/<C-x>
 return {
     "nat-418/boole.nvim",
     config = function()

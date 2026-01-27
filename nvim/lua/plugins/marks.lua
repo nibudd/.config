@@ -1,3 +1,4 @@
+-- enhanced mark visibility in sign column
 return {
     "chentoast/marks.nvim",
     config = function()

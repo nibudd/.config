@@ -1,3 +1,4 @@
+-- file explorer that edits filesystem like a buffer
 return {
     'stevearc/oil.nvim',
     opts = {},
