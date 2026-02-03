@@ -1,9 +1,9 @@
 - git: username, email
 - ssh key for github
 - clone .config repo
-- [mac] brew
+- [mac] brew, autoupdate
 - [mac] unnatural scroll wheels
-- tmux, symlink config file
+- tmux, symlink config file, TPM setup
 - fd
 - nvim
 - nvm
