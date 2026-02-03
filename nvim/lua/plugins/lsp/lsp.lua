@@ -16,7 +16,7 @@ return {
         dependencies = { "mason-org/mason.nvim" },
         config = function()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pyright" },
+                ensure_installed = { "lua_ls", "pyright", "ts_ls", "vue_ls" },
             })
         end
     },
@@ -89,6 +89,23 @@ return {
             -- Setup pyright
             vim.lsp.config['pyright'] = {
                 capabilities = capabilities,
+            }
+
+            -- Setup ts_ls with Vue support
+            vim.lsp.config['ts_ls'] = {
+                capabilities = capabilities,
+                init_options = {
+                    plugins = {
+                        {
+                            name = "@vue/typescript-plugin",
+                            location = vim.fn.stdpath("data") ..
+                                "/mason/packages/vue-language-server/node_modules/@vue/language-server",
+                            languages = { "vue" },
+                        },
+                    },
+                },
+                filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue"
+                },
             }
 
             -- Add keymaps and test border functionality
