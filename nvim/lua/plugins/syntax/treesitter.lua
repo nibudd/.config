@@ -14,6 +14,7 @@ return {
                     "typescript",
                     "vim",
                     "vimdoc",
+                    "vue",
                 },
                 sync_install = true,
 
