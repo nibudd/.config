@@ -1,0 +1,36 @@
+graph LR
+    subgraph any programconfigversion
+        direction LR
+        A3[!TRACKING_PERFORMANCE_SAVING
+		!TRACKING_NRE
+		!TRACKING_PERMANENTLY_DISQUALIFIED
+		!COMPLETED] --Cancel--> B3[CANCEL_PROJECT]
+    end
+
+    subgraph programconfigversion is Two Stage
+        direction LR
+        A2[RESERVATION_REQUESTED
+        RESERVATION_CLIENT_ACTION_REQUIRED
+        RESERVATION_UTILITY_REVIEW
+        RESERVATION_ENGINEERING_REVIEW] --Reserve & Await Installation--> B2[RESERVE_AND_AWAIT_INSTALLATION]
+
+        A2 --Move Back To Project Creation--> F2[MOVE_BACK_TO_PROJECT_CREATION]
+
+        C2[COMPLETION_REQUESTED
+        COMPLETION_CLIENT_ACTION_REQUIRED
+        COMPLETION_UTILITY_REVIEW
+        COMPLETION_ENGINEERING_REVIEW
+        COMPLETION_APPROVED] --Move To Tracking--> D2[MOVE_TO_TRACKING]
+
+        C2 --Move Back To Awaiting Install-->E2[MOVE_BACK_TO_AWAITING_INSTALLATION]
+    end
+
+    subgraph programconfigversion is One Stage
+        direction LR
+        A1[RESERVATION_REQUESTED
+        RESERVATION_CLIENT_ACTION_REQUIRED
+        RESERVATION_UTILITY_REVIEW
+        RESERVATION_ENGINEERING_REVIEW] --Reserve & Track--> B1[RESERVE_AND_MOVE_TO_TRACKING]
+
+        A1 --Move Back to Created--> C1[MOVE_BACK_TO_PROJECT_CREATION]
+    end
