@@ -7,6 +7,8 @@ return {
             require("nvim-treesitter").setup({
                 ensure_installed = {
                     "bash",
+                    "css",
+                    "html",
                     "javascript",
                     "lua",
                     "python",
