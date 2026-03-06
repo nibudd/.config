@@ -5,6 +5,7 @@ vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "move down one pane" })
 vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "move up one pane" })
 vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "move right one pane" })
 
+vim.keymap.set("i", "jl", "<esc>", { desc = "exit insert mode" })
 vim.keymap.set("i", "jk", "<esc><cmd>update<CR>", { desc = "exit insert mode and update" })
 vim.keymap.set("i", "jq", "<esc><cmd>update<CR><cmd>q<CR>", { desc = "exit insert mode, update, and quit" })
 vim.keymap.set("n", "<leader>jk", "<cmd>update<CR>", { desc = "update from normal mode" })
