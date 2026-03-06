@@ -9,10 +9,11 @@ return {
       -- Conform will run the first available formatter
       javascript = { "eslint_d" },
       typescript = { "eslint_d" },
+      vue = { "eslint_d" },
     },
     format_on_save = {
-      timeout_ms = 500,
-      lsp_format = "fallback",
+      timeout_ms = 5000,
+      lsp_format = "never",
     },
   },
 }
