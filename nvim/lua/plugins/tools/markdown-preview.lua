@@ -18,6 +18,10 @@ return {
             },
             debounce_ms = 300,         -- debounce interval
             notify_on_refresh = false, -- show notification on refresh
+
+            vim.keymap.set("n", "<leader>mps", "<cmd>MarkdownPreview<cr>", { desc = "Markdown: Start preview" }),
+            vim.keymap.set("n", "<leader>mpS", "<cmd>MarkdownPreviewStop<cr>", { desc = "Markdown: Stop preview" }),
+            vim.keymap.set("n", "<leader>mpr", "<cmd>MarkdownPreviewRefresh<cr>", { desc = "Markdown: Refresh preview" }),
         })
     end,
 }
