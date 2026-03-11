@@ -9,6 +9,7 @@ return {
             },
             -- User defined loops
             additions = {
+              { '- [ ]', '- [x]', '- [-]' },
                 -- { 'Foo', 'Bar' },
                 -- { 'tic', 'tac', 'toe' }
             },
