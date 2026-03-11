@@ -149,7 +149,7 @@ return {
                         path = 0,
                     },
                 },
-                lualine_x = { 'encoding', 'fileformat' },
+                lualine_x = { 'encoding', 'fileformat', function() return vim.fn.ObsessionStatus("󰛐", "󰛑") end },
                 lualine_y = { 'progress' },
                 lualine_z = { 'location' }
             },
