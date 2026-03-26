@@ -5,9 +5,17 @@ return {
     event = "VeryLazy",
     config = function()
         require("nvim-surround").setup({
-            -- Configuration here, or leave empty to use defaults
-            -- recommended to install `nvim-treesitter/nvim-treesitter-textobjects`
-            -- to make configuration easier
+            -- custom function for indentation of multiline surrounds
+            indent_lines = function(start, stop)
+                local base = (start > 1) and vim.fn.indent(start - 1) or 0
+                local sw = vim.fn.shiftwidth()
+                for i = start, stop do
+                    local trimmed = vim.fn.getline(i):gsub("^%s*", "")
+                    local is_closing = trimmed:match("^[%)%]%}]")
+                    local target = is_closing and base or (base + sw)
+                    vim.fn.setline(i, string.rep(" ", target) .. trimmed)
+                end
+            end,
         })
     end
 }
