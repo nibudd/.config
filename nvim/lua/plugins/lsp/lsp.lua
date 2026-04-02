@@ -16,7 +16,7 @@ return {
         dependencies = { "mason-org/mason.nvim" },
         config = function()
             require("mason-lspconfig").setup({
-                ensure_installed = { "lua_ls", "pyright", "ts_ls", "vue_ls" },
+                ensure_installed = { "lua_ls", "basedpyright", "ts_ls", "vue_ls" },
             })
         end
     },
@@ -86,10 +86,19 @@ return {
                 },
             }
 
-            -- Setup pyright
-            vim.lsp.config['pyright'] = {
+            -- Setup basedpyright
+            vim.lsp.config['basedpyright'] = {
                 capabilities = capabilities,
+                settings = {
+                    basedpyright = {
+                        analysis = {
+                            autoImportCompletions = true,
+                        },
+                    },
+                },
             }
+
+            vim.lsp.enable('basedpyright')
 
             -- Setup ts_ls with Vue support
             vim.lsp.config['ts_ls'] = {
