@@ -3,17 +3,17 @@
 - clone .config repo
 - [mac] brew, autoupdate
 - [mac] unnatural scroll wheels
-- tmux, symlink config file, TPM setup
+- tmux, TPM setup
 - fd
-- nvim
-- nvm
-- nvm install [latest node version]
-- pyenv
 - [mac] xz
 - [mac] cmake
+- pyenv
 - pyenv install [latest python version]
+- make sure pyenv commands are still in .zshrc
+- nvm
+- nvm install [latest node version]
+- nvim
 - omz
 - p10k
+- run bootstrap.sh
 - fix any straggling nvim things
-- make sure pyenv commands are still in .zshrc
-- symlink zsh aliases file
