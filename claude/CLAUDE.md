@@ -1,0 +1,5 @@
+- Design for testability, with a preference for the "functional core, imperative shell" pattern
+- Prefer tests with no/few mocks
+- Prefer parametrized tests when possible
+- Prefer designs that make use of well-known software design patterns
+- Never use typeof for validation in TS/JS; use zod instead
