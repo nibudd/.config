@@ -20,3 +20,7 @@ link() {
 echo "Creating symlinks..."
 link "$CONFIG_DIR/.tmux.conf"       "$HOME/.tmux.conf"
 link "$CONFIG_DIR/omz/aliases.zsh"  "$ZSH_CUSTOM/aliases.zsh"
+mkdir -p "$HOME/.claude"
+link "$CONFIG_DIR/claude/settings.json"   "$HOME/.claude/settings.json"
+link "$CONFIG_DIR/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
+link "$CONFIG_DIR/claude/keybindings.json" "$HOME/.claude/keybindings.json"
