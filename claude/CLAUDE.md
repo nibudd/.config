@@ -5,3 +5,4 @@
 - Never use typeof for validation in TS/JS; use zod instead
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - When the user shares test output or references a test output file, read it and analyze failures, grouping by root cause
+- Prefer targeted test runs (pytest path::name -q) over running the full suite

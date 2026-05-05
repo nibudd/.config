@@ -5,11 +5,6 @@
       {
         "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/block-tests.sh",
-            "timeout": 5
-          }
         ]
       }
     ]
