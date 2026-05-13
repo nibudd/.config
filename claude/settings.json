@@ -4,9 +4,9 @@
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "hooks": [
-        ]
+        "hooks": []
       }
     ]
-  }
+  },
+  "skipAutoPermissionPrompt": true
 }
