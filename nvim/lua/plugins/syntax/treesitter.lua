@@ -1,29 +1,32 @@
 -- language-based highlighting
+local languages = {
+    "bash",
+    "css",
+    "html",
+    "javascript",
+    "lua",
+    "python",
+    "sql",
+    "typescript",
+    "vim",
+    "vimdoc",
+    "vue",
+}
+
 return {
     {
         "nvim-treesitter/nvim-treesitter",
+        lazy = false,
         build = ":TSUpdate",
         config = function()
-            require("nvim-treesitter").setup({
-                ensure_installed = {
-                    "bash",
-                    "css",
-                    "html",
-                    "javascript",
-                    "lua",
-                    "python",
-                    "sql",
-                    "typescript",
-                    "vim",
-                    "vimdoc",
-                    "vue",
-                },
-                sync_install = true,
+            require("nvim-treesitter").install(languages)
 
-                additional_vim_regex_highlighting = false,
-                auto_install = true,
-                highlight = { enable = true },
-                indent = { enable = true },
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = languages,
+                callback = function()
+                    vim.treesitter.start()
+                    vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                end,
             })
         end
     },
