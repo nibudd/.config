@@ -100,6 +100,40 @@ return {
 
             vim.lsp.enable('basedpyright')
 
+            -- Setup terraform-ls. Two issues to work around:
+            -- 1. The walker recurses from workspace root looking for *.tf
+            --    files; left alone it descends into .venv, node_modules, etc.
+            --    `.terraform` is forbidden in ignoreDirectoryNames (it holds
+            --    modules.json), so vendored module trees go via ignorePaths
+            --    (literal, workspace-relative; no globs).
+            -- 2. terraform-ls 0.38.6 emits negative deltas in semanticTokens
+            --    responses, which sends nvim's tokens handler into an
+            --    infinite vim.str_utfindex loop. Drop the capability on init.
+            vim.lsp.config['terraformls'] = {
+                capabilities = capabilities,
+                init_options = {
+                    indexing = {
+                        ignoreDirectoryNames = {
+                            ".venv",
+                            "node_modules",
+                            "__pycache__",
+                            ".pytest_cache",
+                            ".mypy_cache",
+                            ".ruff_cache",
+                        },
+                        ignorePaths = {
+                            "terraform/staging/.terraform/modules",
+                            "terraform/production/.terraform/modules",
+                            "terraform/local/.terraform/modules",
+                        },
+                    },
+                },
+                on_init = function(client)
+                    client.server_capabilities.semanticTokensProvider = nil
+                end,
+            }
+            vim.lsp.enable('terraformls')
+
             -- Setup ts_ls with Vue support
             vim.lsp.config['ts_ls'] = {
                 capabilities = capabilities,
