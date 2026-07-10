@@ -1,10 +1,11 @@
 - Design for testability, with a preference for the "functional core, imperative shell" pattern
+- Prefer simple designs
+- Prefer designs that make use of well-known software design patterns
 - Prefer tests with no/few mocks
 - Prefer parametrized tests when possible
-- Prefer designs that make use of well-known software design patterns
 - Never use typeof for validation in TS/JS; use zod instead
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
-- Prefer targeted test runs (pytest path::name -q) over running the full suite
+- Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
 
 ## Collaboration style

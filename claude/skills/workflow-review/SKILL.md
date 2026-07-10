@@ -8,7 +8,8 @@ Review the user's recent Claude Code usage and suggest workflow improvements.
 
 Steps:
 
-1. Read `~/.claude/history.jsonl` to understand recent session patterns (tools used, common tasks, repeated prompts, errors encountered)
+1. Take into account any comments/suggestions i have from $ARGUMENTS
+1. Read `~/.claude/history.jsonl` to understand recent session patterns (tools used, common tasks, repeated prompts, errors encountered, types of questions or tasks I spend extra time on)
 2. Check what's currently configured:
    - `~/.claude/settings.json` for hooks and settings
    - `~/.claude/skills/` for installed skills
