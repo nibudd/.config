@@ -1,4 +1,18 @@
 -- AI assistant integration with tmux support
+
+-- sidekick's context picker (M.ctx) targets the most-recently-focused window
+-- via a `sidekick_visit` timestamp rather than the current window. On a fresh
+-- multi-window layout (e.g. a vim-obsession session restore) nothing is stamped
+-- yet, so the picker falls back to window-creation order and can grab the wrong
+-- buffer -- yielding a "@other-file :L0" reference or a raw selection paste.
+-- Stamp the current window before sending so our window always wins the sort.
+local function from_here(fn)
+  return function()
+    vim.w[vim.api.nvim_get_current_win()].sidekick_visit = vim.uv.hrtime()
+    fn()
+  end
+end
+
 return {
   "folke/sidekick.nvim",
   opts = {
@@ -48,24 +62,24 @@ return {
     },
     {
       "<leader>at",
-      function() require("sidekick.cli").send({ msg = "{this}" }) end,
+      from_here(function() require("sidekick.cli").send({ msg = "{this}" }) end),
       mode = { "x", "n" },
       desc = "Send This",
     },
     {
       "<leader>af",
-      function() require("sidekick.cli").send({ msg = "{file}" }) end,
+      from_here(function() require("sidekick.cli").send({ msg = "{file}" }) end),
       desc = "Send File",
     },
     {
       "<leader>av",
-      function() require("sidekick.cli").send({ msg = "{selection}" }) end,
+      from_here(function() require("sidekick.cli").send({ msg = "{selection}" }) end),
       mode = { "x" },
       desc = "Send Visual Selection",
     },
     {
       "<leader>ap",
-      function() require("sidekick.cli").prompt() end,
+      from_here(function() require("sidekick.cli").prompt() end),
       mode = { "n", "x" },
       desc = "Sidekick Select Prompt",
     },
