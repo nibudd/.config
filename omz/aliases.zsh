@@ -1,6 +1,10 @@
 # make a symlink of this file in your zsh custom directory
 # ln -s ~/.config/omz/aliases.zsh ~/.oh-my-zsh/custom/aliases.zsh
 alias gs="git status"
+alias gf="git fetch"
+alias gp="git push"
+alias gm="git merge"
+alias om="origin/main"
 alias dad="curl -H 'Accept: application/json' https://icanhazdadjoke.com/ | jq '.joke'"
 update() {
   echo '> brew update'   && brew update   && \
