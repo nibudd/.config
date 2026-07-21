@@ -6,6 +6,16 @@
         "matcher": "Bash",
         "hooks": []
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/workflow-review-nudge.sh"
+          }
+        ]
+      }
     ]
   },
   "skipAutoPermissionPrompt": true
