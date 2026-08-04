@@ -18,5 +18,13 @@
       }
     ]
   },
-  "skipAutoPermissionPrompt": true
+  "skipAutoPermissionPrompt": true,
+  "extraKnownMarketplaces": {
+    "recurve-plugins": {
+      "source": {
+        "source": "git",
+        "url": "git@github.com:recurve-inc/claude-plugins.git"
+      }
+    }
+  }
 }

@@ -27,6 +27,9 @@ vim.opt.smartindent = false
 vim.opt.tabstop = 4
 vim.opt.wrap = false
 
+-- mouse: 1 line per wheel notch (default is ver:3, which feels jolty)
+vim.opt.mousescroll = "ver:1,hor:6"
+
 -- miscellaneous
 vim.opt.updatetime = 50
 
