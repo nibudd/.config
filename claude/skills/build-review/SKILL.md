@@ -43,7 +43,7 @@ Since I squash-merge, each of these commit subjects becomes a changelog line on 
 
 ### 3. Worklog
 
-Keep one per branch at `<repo>/.claude/scratch/<branch>/worklog.md`, with any `/` in the branch name replaced by `_`. Create it in stage 1, update it as you go, and read it first when resuming a task already in progress — it's the answer to "where are we?" without re-reading the diff.
+Keep one per branch at `<repo>/.claude/<branch>/worklog.md`, with any `/` in the branch name replaced by `_`. Create it in stage 1, update it as you go, and read it first when resuming a task already in progress — it's the answer to "where are we?" without re-reading the diff.
 
 ```markdown
 # <task> — <branch>

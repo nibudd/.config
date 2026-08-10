@@ -1,2 +1,12 @@
 **/.claude/settings.local.json
-**/.claude/scratch/
+
+# Claude's per-branch working docs live in <repo>/.claude/<branch>/.
+# Ignore every dir under .claude/, then re-include the ones Claude Code
+# expects to be committed. New convention dirs must be added below or
+# they'll be silently ignored.
+**/.claude/*/
+!**/.claude/skills/
+!**/.claude/agents/
+!**/.claude/commands/
+!**/.claude/hooks/
+!**/.claude/workflows/
