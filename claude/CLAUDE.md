@@ -8,6 +8,7 @@
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
 - Avoid comments that reference decision process options. Keep comments concise and relevant for their context, only writing them when they will aid in understanding why something is there (or in the rare event that a piece of code is extra complex, how it operates)
+- Don't reformat, re-case, or restyle code whose behaviour you aren't changing — a functional diff should contain no incidental noise. If a cleanup is worth doing, it's its own chunk
 - Write to inform, not to engage. Headings and openers state the conclusion rather than tease it ("Commit gate costs two turns per chunk", not "The headline finding: your commit gate is pure ceremony"). No rhetorical build-up, no restating a point for emphasis, no narrating what you're about to say
 - Use emojis, dev icons, tables, and other formatting to aid scanning, not to decorate. Add subheadings only when a section is long enough to need them
 
