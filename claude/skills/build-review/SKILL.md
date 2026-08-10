@@ -60,18 +60,15 @@ Keep one file per branch at `~/.claude/worklog/<repo>-<branch>.md`. Create it in
 
 Decisions is the part that matters. One line per non-obvious choice, **including the ones you didn't stop for** — that's what I read instead of sitting through gates, and it's still readable weeks later when the conversation is gone.
 
-### 4. Review — adversarial, cross-model, refutation-checked
+### 4. Review — adversarial, cross-model, independently refuted
 
 Attack the diff, don't bless it. A clean review is a conclusion you reach by looking hard, not a starting assumption.
 
-- Launch a review subagent **on a different model than you're running** (e.g. if you're on Opus, run it on Sonnet) to avoid shared blind spots. Give it the full branch diff and four angles:
-  1. **Bugs this change introduced.**
-  2. **Latent bugs it exposed** — pre-existing problems the change surfaces.
-  3. **Where the plan or design was wrong.**
-  4. **Weak or missing test coverage** — would a test actually catch a regression here?
-- Then, for **each** finding, run a second check whose only job is to **disprove** it. Default to "refuted" when uncertain. Only findings that survive refutation are real.
+1. Delegate the full branch diff to the **`diff-critic`** agent, telling it what plan to judge the work against. Run it **on a model other than the one you're running** — pass an explicit model override, because without one it inherits yours and the review shares your blind spots. Pick a peer-tier model (Opus / Fable / Sonnet), not Haiku. Say in your summary which model you ran and which you delegated to.
+2. For **each** finding it returns, spawn a **`refuter`** in a fresh context — one per finding, in parallel. Refuters must not see `diff-critic`'s reasoning; give them the claim and the code, nothing more.
+3. A finding is real unless its refuter killed it **with a concrete cited reason** — a guard, contract, test, or misread at a named `file:line`. "Probably fine" is not a refutation.
 
-**Gate:** present the surviving findings, the branch diff, and the Decisions section, then STOP. This is my main review surface — the decisions I didn't gate on land here. Wait for my call on which findings to fix.
+**Gate:** present the surviving findings in full, the refuted ones as one line each (claim + why it was killed, so I can see what got filtered and overrule it), the branch diff, and the Decisions section. Then STOP. This is my main review surface — the decisions I didn't gate on land here. Wait for my call on which findings to fix.
 
 ### 5. Fix
 
