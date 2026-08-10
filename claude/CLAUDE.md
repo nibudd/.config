@@ -4,6 +4,7 @@
 - Prefer tests with no/few mocks
 - Prefer parametrized tests when possible
 - Never use typeof for validation in TS/JS; use zod instead
+- Use ALL_CAPS for SQL keywords (`SELECT`, `JOIN`, `ON`, `AND`, …)
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
