@@ -9,6 +9,7 @@ Review the user's recent Claude Code usage and suggest workflow improvements.
 
 Steps:
 
+0. **Pick up where the last review left off.** Look for previous reviews at `~/.config/.claude/*/workflow-review-*.md` and read the most recent one's status section. Report on anything still outstanding **before** proposing anything new — a deferred item that's now unblocked usually beats a fresh idea. Note whether whatever it was waiting on has actually happened.
 1. Take into account any comments/suggestions i have from $ARGUMENTS
 1. Read `~/.claude/history.jsonl` to understand recent session patterns (tools used, common tasks, repeated prompts, errors encountered, types of questions or tasks I spend extra time on)
 2. Check what's currently configured:
@@ -34,3 +35,5 @@ Steps:
    - Process changes the user could make themselves
 
 Keep suggestions actionable and prioritized. Focus on the highest-impact improvements first. Separate "capture what I already do" changes from "new ideas worth trying" so I can tell which are safe vs. experimental.
+
+Write the review to `~/.config/.claude/<branch>/workflow-review-<YYYY-MM-DD>.md` — always that repo regardless of where the session is running, since that's the config being reviewed, and always with a status section at the end recording what's done, what's outstanding, and what each outstanding item is waiting on. Step 0 of the next review reads it. Keep that section current as items land.
