@@ -28,3 +28,14 @@ link "$CONFIG_DIR/claude/skills"          "$HOME/.claude/skills"
 link "$CONFIG_DIR/claude/agents"          "$HOME/.claude/agents"
 link "$CONFIG_DIR/claude/hooks"           "$HOME/.claude/hooks"
 link "$CONFIG_DIR/claude/statusline.sh"   "$HOME/.claude/statusline.sh"
+
+echo "Setting up Claude working docs..."
+if [ -d "$HOME/.claude-work/.git" ]; then
+  echo "  skip (already cloned): $HOME/.claude-work"
+elif git clone -q git@github.com:nibudd/.claude-work.git "$HOME/.claude-work" 2>/dev/null; then
+  echo "  cloned: $HOME/.claude-work"
+else
+  mkdir -p "$HOME/.claude-work"
+  echo "  WARN: clone failed (ssh auth not set up yet?) — created empty $HOME/.claude-work"
+  echo "        re-run once 'gh auth login' succeeds to recover previous worklogs"
+fi
