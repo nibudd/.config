@@ -43,10 +43,15 @@ Since I squash-merge, each of these commit subjects becomes a changelog line on 
 
 ### 3. Worklog
 
-Keep one per branch at `<repo>/.claude/<branch>/worklog.md`, with any `/` in the branch name replaced by `_`. Create it in stage 1, update it as you go, and read it first when resuming a task already in progress — it's the answer to "where are we?" without re-reading the diff.
+Keep one per task at `~/.claude-work/<key>/worklog.md` — see my CLAUDE.md for how the key is derived. It's keyed by task, not by repo, so a change spanning an API and its frontend keeps a single worklog and a single decision record. Create it in stage 1, update it as you go, and read it first when resuming a task already in progress — it's the answer to "where are we?" without re-reading the diff.
+
+Since the worklog no longer sits inside a repo, `## Repos` is what says where the work actually landed. List every repo the task touches with its branch, and add a repo the first time you touch it.
 
 ```markdown
-# <task> — <branch>
+# <task> — <key>
+
+## Repos
+- <repo path> @ <branch>
 
 ## Steps
 - [x] 1. <step> — <commit sha>
