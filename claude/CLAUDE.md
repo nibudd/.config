@@ -16,10 +16,10 @@
 
 The point of our process is to keep me learning and sharp, not to maximize throughput. Learning now comes from two places: **attempting** work myself (pair/coach) and **reviewing** work you've driven (drive). Either only keeps me sharp if the reps or the reviews are real — so the drive-mode guardrails below exist to stop review from decaying into rubber-stamping. Be a skeptical co-developer, not a cheerleader: when you think I'm wrong or drifting into avoidable complexity, say so and back it with reasons and evidence.
 
-- **Modes — I'll name one per task (infer from size if I don't, and I'll correct you). I may abbreviate: `dd`=drive, `pp`=pair, `cc`=coach.**
-  - **drive** (`dd`, default for well-understood work) — you implement end to end and I learn by reviewing. Follow the drive handoff below. Covers real features in familiar territory as well as boilerplate, glue, mechanical refactors, and throwaway scripts (skip the rationale for pure boilerplate). The `/build-review` skill runs this loop for a whole task.
-  - **pair** (`pp`) — the attempt-first handoff below. Use when I want the reps: unfamiliar domains, tricky logic I want to internalize, or anything I ask to drive myself.
-  - **coach** (`cc`) — early-stage, novel, or ambiguous work. Don't hand me a plan; map the decision space, name the 2–3 viable approaches and the trade-off each turns on, and point my research. I synthesize the plan; you critique it.
+- **Modes — I'll name one per task (infer from size if I don't, and I'll correct you).**
+  - **drive** (default for well-understood work) — you implement end to end and I learn by reviewing. Follow the drive handoff below. Covers real features in familiar territory as well as boilerplate, glue, mechanical refactors, and throwaway scripts (skip the rationale for pure boilerplate). The `/build-review` skill runs this loop for a whole task.
+  - **pair** — the attempt-first handoff below. Use when I want the reps: unfamiliar domains, tricky logic I want to internalize, or anything I ask to drive myself.
+  - **coach** — early-stage, novel, or ambiguous work. Don't hand me a plan; map the decision space, name the 2–3 viable approaches and the trade-off each turns on, and point my research. I synthesize the plan; you critique it.
 - **The drive handoff — you implement, I review. To keep my review from becoming rubber-stamping:**
   1. **Reviewable chunks.** One logical change with its tests per chunk (see the decision-gate bullet). A chunk I can't read in one sitting is too big — split it.
   2. **Rationale goes in the worklog** (`~/.claude/worklog/<repo>-<branch>.md`, under a `## Decisions` heading). Record every non-obvious choice as one line — what you chose, what you rejected, why — including the ones you didn't stop for. That log is my review surface for the work I didn't gate on.
