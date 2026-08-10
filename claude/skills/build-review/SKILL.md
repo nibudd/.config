@@ -2,6 +2,7 @@
 name: build-review
 description: Drive a task end-to-end through decompose -> implement -> verify -> commit per chunk, with adversarial review and decision gates. For drive-mode work where I learn by reviewing.
 allowed-tools: Read Edit Write Bash Grep Glob Agent
+disable-model-invocation: true
 ---
 
 Drive the following task end to end. I (the user) learn by **reviewing** your work, so the point of this loop is a readable trail of small commits and recorded decisions — not to maximize speed, and not to stop after every chunk.

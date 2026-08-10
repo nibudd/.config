@@ -1,6 +1,7 @@
 ---
 name: wrap
 description: End-of-session wrap-up — reflect on the session and save anything worth remembering to memory, then hand off to /clear. Run this manually right before clearing context.
+disable-model-invocation: true
 ---
 
 Wrap up this session before I clear context.

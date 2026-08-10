@@ -2,6 +2,7 @@
 name: workflow-review
 description: Analyze recent Claude Code session history and suggest workflow improvements
 allowed-tools: Read Bash Grep Glob WebSearch WebFetch
+disable-model-invocation: true
 ---
 
 Review the user's recent Claude Code usage and suggest workflow improvements.

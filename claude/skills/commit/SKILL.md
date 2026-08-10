@@ -2,6 +2,7 @@
 name: commit
 description: Draft a commit message for staged work, wait for the user's approval or correction, then commit
 allowed-tools: Bash
+disable-model-invocation: true
 ---
 
 Commit the currently staged changes. Draft the message first, wait for the user to approve or correct it, then create the commit.
