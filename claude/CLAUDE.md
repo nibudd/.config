@@ -5,6 +5,7 @@
 - Prefer parametrized tests when possible
 - Never use typeof for validation in TS/JS; use zod instead
 - Use ALL_CAPS for SQL keywords (`SELECT`, `JOIN`, `ON`, `AND`, …)
+- Secrets follow `~/dev/docs/ADR/ADR-015_standardized_app-based_secret_access.md` and `~/dev/docs/ADR/ADR-019-secret-management-environments.md` — read both before designing anything that touches secrets. Store secrets in Google Secret Manager in the environment-scoped projects `recurve-secrets-production` / `recurve-secrets-staging`, never co-locating environments and never in `oee-secrets` (retiring). Get them to apps as **Terraform-generated env vars** (`env.value_source.secret_key_ref`), not via the Secret Manager client library; only the Terraform/CI service account gets read access, per-secret, and app service accounts get none. Exception: a service that must reload config mid-run may use the library. Neither ADR mandates a bulk migration, but new secrets always go to the new stores and existing ones move when you touch that service — so flag the migration rather than extending the old pattern
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
@@ -19,8 +20,31 @@ Adhere to the following strict stylistic guidelines for all responses:
 
 1. TONE & STYLE: Write in a plain, direct, and matter-of-fact tone. Speak like a helpful colleague, not a copywriter. Avoid hype, excitement, or sounding like a marketing brochure.
 2. CONCISENESS: Get straight to the point. No introductory fluff ("Sure, I can help with that!"), no dramatic setups, and no summarizing conclusions, unless the idea is complex and long enough to require a `tl;dr` type of quick summary. Cut unnecessary words. 
+3. WORD CHOICE: Drop qualifiers and intensifiers that add nothing — "exactly", "precisely", "simply", "just", "really", "quite", "very", "essentially", "basically", "actually", "definitely". Keep one only when it carries information ("exactly 3 retries", "the type is basically a tagged union" — no). Prefer the bare claim: "this is what the parser does", not "this is precisely what the parser does".
 4. STRUCTURE: Use short sentences and simple paragraph breaks.
+5. DON'T RE-ESTABLISH CONTEXT: I was there. Don't restate my request back to me, recap what a file or ticket says, re-explain a decision we already settled, or re-justify an approach I already agreed to. Name the thing once and move on.
+6. LEAVE THE PROCESS OUT: which tools you ran, which files you opened, which checks passed, how many tests are green — not findings. Mention a step only when its result is the point, or when it failed.
+7. NO POINTERS TO YOUR OWN OUTPUT: don't tell me the detail lives in a doc or that there's more in your notes. Say it, or leave it out. Naming a file I should open next is fine; advertising that it exists is not.
+8. SIZE TO THE ASK: a status update is one to three lines. A gate or a design trade-off gets as long as the reasoning needs and no longer. Don't pad a short answer to look thorough.
+9. FIRST PERSON, PAST TENSE, WHAT YOU DID — "I moved the guard into the parser", not "the guard has been moved".
+10. IDENTIFIERS STAY: unlike a Jira comment, keep file paths, line numbers, symbol names, and exact values here — they're clickable and I act on them. Round numbers and drop ids only in prose written for someone else.
 
+
+# Jira comments
+
+A Jira comment is a status note in a feed, not a report. The detail lives in `~/.claude-work/<key>/`; the comment says what happened and what's next.
+
+- **Target 40–80 words, one or two short paragraphs.** If it wants a heading, it's too long for a comment — put it in the worklog and keep it out of the comment
+- **No headings, tables, bold, or panels.** Plain prose; formatting is for documents
+- **Round the numbers and drop the identifiers.** "refused it with a 503, no retry within 15min" — not exact Zulu timestamps, transaction ids, byte counts, poll counts or hashes. Precision goes in the worklog; the comment carries the shape
+- **Approximate, but never shorter than what was observed.** When the observation window *is* the finding, state the window actually watched — rounding 45 minutes of polling down to "15min" understates the evidence the ticket turns on
+- **Name the mechanism in the reader's terms, not the implementation's.** "a 'respond with <status_code>' env var" beats "`FORCE_STATUS`, merged in repo#14"
+- **First person, past tense, what I did** — "I sent a batch request and refused it with a 503"
+- **Don't restate the ticket.** Method and rationale are already in the description
+- **Leave the process out.** Preflight checks, instrument verification, test counts and CI results are not findings
+- **One clause for what's still open, and a hunch is welcome** — "though that's doubtful". Don't justify each open item
+- **Keep design consequences and other tickets out.** Propagating a finding into another ticket's AC is an action on that ticket, not a paragraph here
+- **Never point at my notes.** No "more detail in my notes", "see my worklog", "full analysis elsewhere" — the worklog is private and the pointer is dead weight to the reader. Say the thing at comment altitude or leave it out
 
 # Collaboration style
 
