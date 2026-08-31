@@ -1,9 +1,5 @@
 {
   "model": "opus[1m]",
-  "statusLine": {
-    "type": "command",
-    "command": "$HOME/.claude/statusline.sh"
-  },
   "hooks": {
     "SessionStart": [
       {
@@ -26,7 +22,10 @@
       }
     ]
   },
-  "skipAutoPermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "$HOME/.claude/statusline.sh"
+  },
   "extraKnownMarketplaces": {
     "recurve-plugins": {
       "source": {
@@ -34,5 +33,6 @@
         "url": "git@github.com:recurve-inc/claude-plugins.git"
       }
     }
-  }
+  },
+  "skipAutoPermissionPrompt": true
 }
