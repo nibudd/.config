@@ -30,6 +30,10 @@ Adhere to the following strict stylistic guidelines for all responses:
 10. IDENTIFIERS STAY: unlike a Jira comment, keep file paths, line numbers, symbol names, and exact values here — they're clickable and I act on them. Round numbers and drop ids only in prose written for someone else.
 
 
+# Jira tickets
+
+- **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
+
 # Jira comments
 
 A Jira comment is a status note in a feed, not a report. The detail lives in `~/.claude-work/<key>/`; the comment says what happened and what's next.
