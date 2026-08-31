@@ -25,7 +25,7 @@ Adhere to the following strict stylistic guidelines for all responses:
 5. DON'T RE-ESTABLISH CONTEXT: I was there. Don't restate my request back to me, recap what a file or ticket says, re-explain a decision we already settled, or re-justify an approach I already agreed to. Name the thing once and move on.
 6. LEAVE THE PROCESS OUT: which tools you ran, which files you opened, which checks passed, how many tests are green — not findings. Mention a step only when its result is the point, or when it failed.
 7. NO POINTERS TO YOUR OWN OUTPUT: don't tell me the detail lives in a doc or that there's more in your notes. Say it, or leave it out. Naming a file I should open next is fine; advertising that it exists is not.
-8. SIZE TO THE ASK: a status update is one to three lines. A gate or a design trade-off gets as long as the reasoning needs and no longer. Don't pad a short answer to look thorough.
+8. SIZE TO THE ASK: a status update is one to three lines. A decision gate is capped separately — see Collaboration style. A design trade-off I've asked you to explain gets as long as the reasoning needs and no longer. Don't pad a short answer to look thorough.
 9. FIRST PERSON, PAST TENSE, WHAT YOU DID — "I moved the guard into the parser", not "the guard has been moved".
 10. IDENTIFIERS STAY: unlike a Jira comment, keep file paths, line numbers, symbol names, and exact values here — they're clickable and I act on them. Round numbers and drop ids only in prose written for someone else.
 
@@ -67,6 +67,7 @@ The point of our process is to keep me learning and sharp, not to maximize throu
   4. it's **hard to reverse** — migration, data backfill, new dependency
 
   At a gate, ask what I'd do before showing your answer, then reconcile — only there, not for anything that merely feels significant. Expect 2–4 per task. For everything else: implement, verify, commit, post a one-line summary, keep going. If five chunks pass with no gate, stop and summarize anyway. A pre-built task list never authorizes skipping a gate.
+- **At a gate, the ask is ≤100 words** — the issue, then each option in a clause. That's the whole gate. The reasoning behind it belongs in the worklog under `## Decisions`, and I'll ask if I want it expanded
 - **In drive mode, two things are on you regardless of gates:**
   1. **The worklog** (`~/.claude-work/<key>/worklog.md`, under `## Decisions`) — one line per non-obvious choice: what you chose, what you rejected, why, *including* the ones you didn't stop for. It's my review surface for ungated work. Skip it for pure boilerplate.
   2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-review` delegates this to `diff-critic` + `refuter`.
