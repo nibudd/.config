@@ -19,11 +19,15 @@ Honor my global CLAUDE.md throughout (functional-core/imperative-shell, simple d
 
 Break the task into a dependency-ordered list of small steps. For each: the files it touches, whether it needs tests, a one-line difficulty note, and **whether it hits a decision gate**.
 
-Then critique your own plan before showing it to me: where is this over-built? which steps could be merged or dropped without changing the outcome? is there a materially simpler approach? Report what you cut and why. Scope creep and unnecessary complexity are the failure modes I care most about — don't wait for me to ask.
+Then critique your own plan: where is this over-built? which steps could be merged or dropped without changing the outcome? is there a materially simpler approach? Cut what doesn't survive and note what you cut. Scope creep and unnecessary complexity are the failure modes I care most about — don't wait for me to ask.
 
 Write the plan to the worklog (format below) so it survives a context clear.
 
-**Gate:** present the list, the critique, and the gate-flagged steps, then STOP. Wait for my "ok"/tweaks before implementing.
+Then delegate the plan to the **`plan-critic`** agent, **on a model other than the one you're running** — same rule and same reason as stage 4, and pass an explicit override or it inherits yours and shares your blind spots. Give it the task statement, the ticket text if there is one, and the plan verbatim. Its job is the one thing your own critique structurally cannot do: check the plan's change surface against the actual repository, rather than against the plan's own account of itself. Fold in what you agree with and carry the rest to the gate.
+
+Its findings are **not** sent to refuters. A plan finding is usually a claim about work that doesn't exist yet, so there's no `file:line` for a refuter to kill it with — you are the filter, and I see what you filtered. Say which findings you accepted, which you rejected, and why.
+
+**Gate:** present the plan, what you cut and why, the surviving `plan-critic` findings with your call on each, and the gate-flagged steps. Name the model you delegated to. Then STOP and wait for my "ok"/tweaks before implementing.
 
 ### 2. Implement, verify, and commit — per step
 
