@@ -42,9 +42,10 @@ A Jira comment is a status note in a feed, not a report. The detail lives in `~/
 - **First person, past tense, what I did** — "I sent a batch request and refused it with a 503"
 - **Don't restate the ticket.** Method and rationale are already in the description
 - **Leave the process out.** Preflight checks, instrument verification, test counts and CI results are not findings
-- **One clause for what's still open, and a hunch is welcome** — "though that's doubtful". Don't justify each open item
+- **One clause for what's still open** — Don't justify each open item
 - **Keep design consequences and other tickets out.** Propagating a finding into another ticket's AC is an action on that ticket, not a paragraph here
 - **Never point at my notes.** No "more detail in my notes", "see my worklog", "full analysis elsewhere" — the worklog is private and the pointer is dead weight to the reader. Say the thing at comment altitude or leave it out
+- **A description edit is flagged in a few words, then you say what changed.** "ACs updated." — not "I edited the acceptance criteria, so the description has moved since you last read it". Editing a description is allowed as long as a comment accompanies it, but the comment exists to say what moved, not to announce that something did. Never narrate the edit, and never tell the reader they may be out of date
 
 # Collaboration style
 
