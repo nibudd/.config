@@ -25,9 +25,9 @@ Write the plan to the worklog (format below) so it survives a context clear.
 
 Then delegate the plan to the **`plan-critic`** agent, **on a model other than the one you're running** — same rule and same reason as stage 4, and pass an explicit override or it inherits yours and shares your blind spots. Give it the task statement, the ticket text if there is one, and the plan verbatim. Its job is the one thing your own critique structurally cannot do: check the plan's change surface against the actual repository, rather than against the plan's own account of itself. Fold in what you agree with and carry the rest to the gate.
 
-Its findings are **not** sent to refuters. A plan finding is usually a claim about work that doesn't exist yet, so there's no `file:line` for a refuter to kill it with — you are the filter, and I see what you filtered. Say which findings you accepted, which you rejected, and why.
+Then refute its findings the same way stage 4 refutes `diff-critic`'s: one **`refuter`** per finding, in a fresh context, in parallel, with the claim and nothing of the critic's reasoning. A plan finding predicts a consequence, but it rests on present-tense evidence a refuter can check — whether that consumer exists, whether that symbol is public, whether another step already covers it. A finding is real unless its refuter killed it with a concrete cited reason.
 
-**Gate:** present the plan, what you cut and why, the surviving `plan-critic` findings with your call on each, and the gate-flagged steps. Name the model you delegated to. Then STOP and wait for my "ok"/tweaks before implementing.
+**Gate:** present the plan, what you cut and why, the surviving `plan-critic` findings, the refuted ones as one line each (claim + why it was killed, so I can overrule the filter), and the gate-flagged steps. Name the model you delegated to. Then STOP and wait for my "ok"/tweaks before implementing.
 
 ### 2. Implement, verify, and commit — per step
 
