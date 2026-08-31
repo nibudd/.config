@@ -37,6 +37,8 @@ Group the commits into PRs. Each PR is one structurally or functionally related 
 
 If the natural grouping isn't contiguous — related commits are interleaved with unrelated ones — you can't get there without a reorder. Say so, show the coarser grouping that *is* possible, and let me decide whether to accept it or authorize a rebase.
 
+If I authorize a rebase, anything **outside the ticket's original scope** — drive-by fixes, unrelated cleanups, tooling or config changes picked up along the way — goes at the **end** of the chain, never the start. The in-scope work is what needs review and merge; it shouldn't sit behind a PR nobody asked for. Order the in-scope groups by the rules below, then append the out-of-scope ones.
+
 ### When to split
 
 Signals a PR is too big:
@@ -54,6 +56,8 @@ Signals a PR is too big:
 ### Chain order
 
 Order so every PR is independently mergeable and leaves the default branch working: additions first, then the change that activates them. Call out explicitly which PR is the one that changes production behaviour — usually exactly one, and it's the one that needs the real review.
+
+Out-of-scope work comes last, after every in-scope PR — only reachable with a rebase, per above.
 
 Base of PR 1 is the repo's default branch. Base of PR *n* is the head branch of PR *n−1*.
 
