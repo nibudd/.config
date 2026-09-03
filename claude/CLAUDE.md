@@ -42,6 +42,7 @@ Adhere to the following strict stylistic guidelines for all responses:
 # Jira tickets
 
 - **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
+- **A new ticket is created with an auto-generated subtask.** When I'm creating subtasks on it too, repurpose that one as the first of them — retitle and rewrite it in place — rather than leaving it sitting there and creating a full set alongside it. If I don't need to create subtasks, leave the auto-generated subtask as-is.
 
 # Jira descriptions
 
