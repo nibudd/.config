@@ -43,6 +43,19 @@ Adhere to the following strict stylistic guidelines for all responses:
 
 - **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
 
+# Jira descriptions
+
+A description is the spec someone builds from, including me after I've forgotten. Unlike a reply to me, it has to establish its own context — but only the context that changes what gets built.
+
+- **Structure sizes the description, not a word count.** One sentence of problem or goal, then the acceptance criteria, then nothing — unless the missing thing would change what someone builds. A constraint, a schema, an interface shape or an external dependency earns a line; background, motivation and history don't
+- **ACs are checkable conditions, one per line.** Each one states an observable outcome someone can confirm or refute, not a paragraph describing the area. If an AC can't be checked, it's context wearing an AC's clothes — cut it or make it testable
+- **Rationale goes in the worklog, not the description.** Why this approach, what I rejected, what the measurement said — `~/.claude-work/<key>/worklog.md` under `## Decisions`. The description says what has to be true when the work is done
+- **Don't restate the parent.** If the epic or parent ticket already holds it, link and move on
+- **Don't pre-write the implementation.** Naming the files or the sequence inside a description freezes a plan before it's been decided, and leaves the description wrong once it changes. Constraints on the outcome belong here; steps toward it don't
+- **Keep the identifiers that survive, drop the ones that rot.** Ticket keys, file paths, endpoints, table and field names, env var names — yes. Line numbers, commit shas and branch names — no; they're stale by the time anyone reads them
+- **Every ticket reference is a link.** Write it as a link to that ticket (`<site>/browse/<KEY>`), never a bare key sitting in prose. Where the relationship is a real one — blocks, is blocked by, relates to — use Jira's issue link instead of naming it in the text
+- **Leave the process out, and never point at my notes.** No preflight checks, no test counts, no "see my worklog" — same as a comment
+
 # Jira comments
 
 A Jira comment is a status note in a feed, not a report. The detail lives in `~/.claude-work/<key>/`; the comment says what happened and what's next.
