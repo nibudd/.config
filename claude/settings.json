@@ -1,5 +1,6 @@
 {
   "model": "opus[1m]",
+  "outputStyle": "colleague",
   "hooks": {
     "SessionStart": [
       {

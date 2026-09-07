@@ -26,6 +26,7 @@ link "$CONFIG_DIR/claude/CLAUDE.md"       "$HOME/.claude/CLAUDE.md"
 link "$CONFIG_DIR/claude/keybindings.json" "$HOME/.claude/keybindings.json"
 link "$CONFIG_DIR/claude/skills"          "$HOME/.claude/skills"
 link "$CONFIG_DIR/claude/agents"          "$HOME/.claude/agents"
+link "$CONFIG_DIR/claude/output-styles"   "$HOME/.claude/output-styles"
 link "$CONFIG_DIR/claude/hooks"           "$HOME/.claude/hooks"
 link "$CONFIG_DIR/claude/statusline.sh"   "$HOME/.claude/statusline.sh"
 

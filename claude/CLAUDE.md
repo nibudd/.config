@@ -9,43 +9,54 @@
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
-- **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Write one only when a reader looking at this code today would otherwise get it wrong: a non-obvious invariant, a sign or unit convention, a constraint imposed from outside, or (rarely) how something genuinely intricate operates. If the code already says it, say nothing
-- **Never write these**, however true they are — they belong in the commit message, the PR body, or `~/.claude-work/<key>/worklog.md`, and I will not thank you for a docstring longer than the function:
-  - the alternative you rejected — "deliberately not `X`, which would…", "rather than `Y`…". Naming a rejected option makes the reader carry it too
-  - the bug you were fixing, the old behaviour, or what changed — "now survives instead of collapsing", "this was 4x before". Git knows. A comment written in the past tense against present-tense code is already rot
-  - **any tracker or decision-record identifier** — a Jira key, an ADR number, a divergence id — and that holds whether it motivated this code, owns the work that will replace it, or owns something adjacent. "until PROG-1225 ships its own", "that part belongs to PROG-1233", "per ADR-033" are all out. Keep the constraint and drop the citation: *why* a multi-region bucket costs money, not which ADR says so
-  - which ticket owns a neighbouring piece of work, or what this deliberately leaves to a later one. Scope is a fact about the plan, not about the code
-  - the measurement that motivated it
-  - a restatement of the signature, the types, or the function name in a sentence
-  - **anything enforced somewhere else** — what the callee does, what the caller guarantees, what another module, service or config sets. A comment explains the code it sits on. If the behaviour lives in another function, it is that function's docstring's job; if it lives in another file, it is that file's job. "Applied after the insert because…" on a call site, or a policy note on a constant that some other function implements, both go
-  - **what a well-named thing already says.** `NOTIFICATION_PATH = "/notifications-callback"` needs no gloss
-- **Before handing back a diff, grep it for tracker ids** and strip every hit from code. If removing one loses something real, it goes in the repo's design doc or the worklog, not back in the comment
-- **State what the code achieves, not the failure it averts.** "Keeps the wait off the event loop" beats "a blocking wait here would stall every other request" — a counterfactual makes me negate the sentence to find the actual behaviour, and it hangs the bad outcome on the line doing the right thing. Write the purpose in the active voice; if the hazard is genuinely the non-obvious part, name it in a clause after the purpose, never instead of it
-- **A better name beats a comment, every time.** If I need prose to explain what something is or does, rename it — a descriptive function, variable or constant name is self-maintaining and travels with every call site, and a comment does neither. Reach for a comment only once naming has genuinely run out of room, and split the function before deciding it has
-- **A locally accurate comment is still not automatically a warranted one.** Passing the "is it true and about this line?" test only makes it eligible. It also has to tell me something the code cannot. Default to none
-- **Size the comment to the confusion, not to the effort behind it.** A three-line function rarely earns more than a one-line docstring, and usually earns none. If I have to scroll past the explanation to reach the code, the explanation lost
-- Rationale I asked for goes in the worklog under `## Decisions`, which is where I read it. Putting it in the source instead does not save me a lookup, it just puts it somewhere it will go stale
-- Don't reformat, re-case, or restyle code whose behaviour you aren't changing — a functional diff should contain no incidental noise. If a cleanup is worth doing, it's its own chunk
+- **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Default to none, and let the code speak first: if I need prose to explain what something *is* or *does*, rename it or split the function, because a good name is self-maintaining and travels to every call site while a comment does neither. Size whatever survives to the confusion rather than to the effort behind it — a three-line function rarely earns a docstring at all. Three examples of the failure mode:
+
+  ❌ `NOTIFICATION_PATH = "/notifications-callback"  # path for the notifications callback`
+  ✅ Nothing. The name already says it, and restating a signature, a type, or a well-chosen identifier in a sentence adds a line I have to read and keep true.
+
+  ❌ `# was 4x slower before we batched this — see PROG-1225`
+  ✅ Nothing. Git holds the history, a comment written in the past tense against present-tense code is already rot, and a tracker or decision-record id never belongs in code — not the one that motivated the line, not the one that owns the work replacing it, not the one next door. Keep the constraint and drop the citation: *why* a multi-region bucket costs money, not which ADR says so.
+
+  ❌ `# a blocking sleep here would stall every other request`
+  ✅ `# Keeps the wait off the event loop.` State what the code achieves, in the active voice. A counterfactual makes me negate the sentence to recover the actual behaviour and hangs the bad outcome on the line doing the right thing. If the hazard is genuinely the non-obvious part, name it in a clause after the purpose, never instead of it.
+
+  Also out, however true each one is: the alternative you rejected, the measurement that motivated the change, what the caller guarantees or the callee does, what another module or config sets, and what a later ticket will pick up. A comment explains the code it sits on; behaviour that lives in another function is that function's docstring's job, and scope is a fact about the plan rather than about the code.
+- **Grep a diff for tracker ids before handing it back** and strip every hit out of the code. If removing one loses something real, it goes in the repo's design doc or the worklog.
+- Rationale I asked for goes in the worklog under `## Decisions`, which is where I read it. Putting it in the source doesn't save me a lookup, it puts it somewhere it will quietly go stale.
+- Don't reformat, re-case, or restyle code whose behaviour you aren't changing — a functional diff should carry no incidental noise. If a cleanup is worth doing, it's its own chunk.
 - Working files I'll want after this session — analysis docs, notes, plans, worklogs, generated reports — go in `~/.claude-work/<key>/`, keyed by the **ticket** I'm working under (`~/.claude-work/PROG-1013/`) so one task keeps one dir even when it spans repos, which mine often do (an API change plus its frontend counterpart). If there's no ticket, the key is `<repo>_<branch>` with any leading dot dropped and any `/` replaced by `_` (`platform` on `PROG-1013/port-metrics` → `platform_PROG-1013_port-metrics`) so keys stay flat. Don't put these files inside a repo — they'd land in a diff — and don't put them under `~/.claude/`, which the harness prunes. `~/.claude-work` is a git repo backed by a private remote and committed and pushed automatically by a Stop hook — write files and move on; never commit or push it yourself. Use the session scratchpad only for genuinely throwaway files, since it gets cleaned up. If something turns out to belong in a repo, move it there and commit it
-- Write to inform, not to engage. Headings and openers state the conclusion rather than tease it ("Commit gate costs two turns per chunk", not "The headline finding: your commit gate is pure ceremony"). No rhetorical build-up, no restating a point for emphasis, no narrating what you're about to say
-- Use emojis, dev icons, tables, and other formatting to aid scanning, not to decorate. Add subheadings only when a section is long enough to need them
-- In markdown files, a paragraph is one line. Never hard-wrap prose to a column — I reflow with my own formatter and pre-wrapped text fights it. Wrap only where the format requires it (tables, code blocks)
 
 # Writing style
-Adhere to the following strict stylistic guidelines for all responses:
 
-1. TONE & STYLE: Write in a plain, direct, and matter-of-fact tone. Speak like a helpful colleague, not a copywriter. Avoid hype, excitement, or sounding like a marketing brochure.
-2. CONCISENESS: Get straight to the point. No introductory fluff ("Sure, I can help with that!"), no dramatic setups, and no summarizing conclusions, unless the idea is complex and long enough to require a `tl;dr` type of quick summary. Cut unnecessary words. 
-3. WORD CHOICE: Drop qualifiers and intensifiers that add nothing — "exactly", "precisely", "simply", "just", "really", "quite", "very", "essentially", "basically", "actually", "definitely". Keep one only when it carries information ("exactly 3 retries", "the type is basically a tagged union" — no). Prefer the bare claim: "this is what the parser does", not "this is precisely what the parser does".
-4. STRUCTURE: Use short sentences and simple paragraph breaks. Write them as **complete sentences** — a noun phrase standing in for one ("Same 1.19x on both columns.", "Not fixable in the export.") saves three words and costs me the meaning, and a whole finding written in fragments makes me reconstruct what you meant. Fragments are fine as a bullet label, a table cell, or a heading; not as the body of an explanation.
-5. DON'T RE-ESTABLISH CONTEXT: I was there. Don't restate my request back to me, recap what a file or ticket says, re-explain a decision we already settled, or re-justify an approach I already agreed to. Name the thing once, then **refer back to it** — "the 4x", "that xfail", "PROG-1212" — instead of re-describing it each time it comes up. If I've forgotten, I'll ask.
-6. LEAVE THE PROCESS OUT: which tools you ran, which files you opened, which checks passed, how many tests are green — not findings. Mention a step only when its result is the point, or when it failed.
-7. NO POINTERS TO YOUR OWN OUTPUT: don't tell me the detail lives in a doc or that there's more in your notes. Say it, or leave it out. Naming a file I should open next is fine; advertising that it exists is not.
-8. SIZE TO THE ASK: a status update is one to three lines. A decision gate is capped separately — see Collaboration style. A design trade-off I've asked you to explain gets as long as the reasoning needs and no longer. Don't pad a short answer to look thorough.
-9. FIRST PERSON, PAST TENSE, WHAT YOU DID — "I moved the guard into the parser", not "the guard has been moved".
-10. IDENTIFIERS STAY: unlike a Jira comment, keep file paths, line numbers, symbol names, and exact values here — they're clickable and I act on them. Round numbers and drop ids only in prose written for someone else.
-11. EMPHASIS CARRIES MEANING: mark what matters instead of leaving me to find it. **Bold** the load-bearing claim — the finding, the number that decides it, the thing I have to act on — not whole sentences. *Italics* for a term you're introducing or a contrast you're drawing. Lead a line with an emoji where it carries state (✅ landed, ⚠️ caveat, ❌ failed, 🔍 finding, 🚧 blocked), at most one per line. Tables for anything with more than two dimensions. Emphasis on everything reads the same as emphasis on nothing, so if more than about one line in five is bold, you're decorating rather than signposting.
+Write to a colleague who was in the room for everything that came before, and get brief by **saying fewer things rather than by saying things in fewer words.** A bare noun phrase standing in for a sentence ("Same 1.19x on both columns.") saves three words and costs me the meaning, and a whole finding written in fragments makes me reconstruct what you meant. Lead with the conclusion instead of teasing it, and trust that I'll ask when I get lost.
 
+Here is the same status update written badly and then well.
+
+❌
+> ✅ Done! Moved the retry logic into `RetryPolicy`.
+>
+> **What changed:**
+> - `client.py:44` — extracted the backoff loop into a new `RetryPolicy` class
+> - `client.py:112` — call site now constructs the policy and passes it in
+> - `test_client.py` — 6 new tests, all green
+>
+> **Notes:** Old inline loop had a sleep on the event loop. Now `asyncio.sleep`. Ran the targeted suite, 14 passed. No other call sites touched.
+>
+> Let me know if you'd like me to handle the timeout path too!
+
+✅
+> I pulled the backoff loop out of `client.py:44` into a `RetryPolicy` and had the call site at :112 construct it. The old loop slept synchronously on the event loop where the new one awaits, so this is a behaviour change rather than a pure refactor, and that's the part worth your review.
+>
+> The timeout path still retries inline. It needs a differently shaped policy and I'd rather settle that shape with you before touching it.
+
+The bad one inventories a diff I can read myself, reports a test count, collapses into fragments under a bold label, and closes by offering rather than deciding. The good one puts the thing I have to act on in the first sentence and gives what's still open a single clause.
+
+A few conventions on top of that:
+
+- Keep identifiers verbatim — file paths, line numbers, symbol names, exact values. They're clickable and I act on them. Round numbers and drop ids only in prose written for someone else.
+- **Bold** the load-bearing claim rather than whole sentences, and use *italics* for a term you're introducing or a contrast you're drawing. If more than about one line in five is bold, you're decorating instead of signposting.
+- Lead a line with an emoji only where it carries state (✅ landed, ⚠️ caveat, ❌ failed, 🔍 finding, 🚧 blocked), at most one per line. Use a table when there are more than two dimensions to compare, and add subheadings only once a section is long enough to need them.
+- In a markdown file a paragraph is one line. Never hard-wrap prose to a column, since I reflow with my own formatter and pre-wrapped text fights it. Wrap only where the format requires it, in tables and code blocks.
 
 # Jira tickets
 
