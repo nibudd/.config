@@ -59,6 +59,28 @@ A few conventions on top of that:
 - Lead a line with an emoji only where it carries state (✅ landed, ⚠️ caveat, ❌ failed, 🔍 finding, 🚧 blocked), at most one per line. Use a table when there are more than two dimensions to compare, and add subheadings only once a section is long enough to need them.
 - In a markdown file a paragraph is one line. Never hard-wrap prose to a column, since I reflow with my own formatter and pre-wrapped text fights it. Wrap only where the format requires it, in tables and code blocks.
 
+# Simplified Technical English
+
+Documents go through the `asd-ste100` skill before anyone else reads them. Replies to me do not. The output style already carries the compatible half of the rules, and a strict pass on conversation reads as a personality transplant.
+
+| Text | Mode |
+|---|---|
+| Jira acceptance criteria, error messages, log lines, docstrings, tool and function descriptions, prompts, and instructions written for another agent | Strict |
+| Jira descriptions and comments, PR titles and bodies, commit bodies, READMEs, design docs, changelogs, worklogs | STE-flavored |
+| Replies to me in conversation | None. The `colleague` output style covers it |
+
+Invoke the skill for anything longer than a few lines. Below that, apply its rules from memory rather than spending a skill call on a two-sentence commit body.
+
+Lint every document written to a file:
+
+```
+python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>
+```
+
+Fix each hard violation unless the fix costs a fact, a hedge, or a scope qualifier. Modality is content, so "the request may have failed" never becomes "the request failed". The linter cannot tell a rule from the bad example that rule quotes. A style guide about writing will always report violations it does not have.
+
+These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A Jira comment stays plain prose with no list, even where STE would break a sequence into numbered steps. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
+
 # Jira tickets
 
 - **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it

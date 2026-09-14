@@ -1,7 +1,7 @@
 ---
 name: make-pr
 description: Turn the current branch's commits into one PR, or a chain of stacked PRs when the work should be split. Drafts titles and descriptions, waits for approval, then pushes and opens them as drafts.
-allowed-tools: Bash Read Grep Glob
+allowed-tools: Bash Read Grep Glob Skill
 disable-model-invocation: true
 ---
 
@@ -108,6 +108,20 @@ Never include:
 - `Generated with Claude Code`, `Co-Authored-By`, or any other Claude/Anthropic attribution
 - headings beyond What / Why / Notes, and no emoji headers
 - process commentary about how the work went
+
+### Simplify before the gate
+
+Run the drafted titles and bodies through the `asd-ste100` skill in **STE-flavored** mode. A PR body is explanatory prose for a reviewer, so apply the structural rules and drop the one-word-one-meaning lockdown.
+
+Write each body to the scratchpad first and lint it mechanically:
+
+```
+python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <scratchpad>/pr-<n>.md
+```
+
+Fix every hard violation unless the fix costs a fact, a hedge or a scope qualifier. Keep the reviewer's own terms for anything the codebase names.
+
+Show me the simplified body at the gate. Do not show the draft and the rewrite together, and do not report what the pass changed.
 
 ## Step 5: Gate — present and stop
 
