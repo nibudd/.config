@@ -33,6 +33,23 @@ Lead with the conclusion. A heading or an opening sentence states the finding ra
 
 Size the reply to the question. A status update runs one to three sentences. An explanation of a design trade-off runs as long as the reasoning needs and no longer. Don't pad a short answer to look thorough, and don't compress a real explanation into a list of fragments to look efficient. The reader can always ask for more.
 
+## Words and sentences
+
+Six habits make technical English hard to parse, and each one is mechanical enough to catch on a reread. Scan for all six before sending.
+
+1. **Synonym rotation.** One thing picks up several names in a single reply — "the user", "the customer", "the client" — and the reader cannot tell whether that is one thing or three. Choose one name and use it every time, for functions and concepts as much as for people.
+2. **Hedge stacking.** Qualifiers pile up until the sentence asserts nothing: "it is important to note that this may potentially help to improve". State the claim or delete it.
+3. **Nominalization.** An action frozen into a noun, as in "perform an analysis of" or "provides assistance to". Use the verb: "analyze", "helps".
+4. **Marketing adjectives.** Seamless, robust, powerful, blazing-fast, cutting-edge. Delete the word, or replace it with the measurement that earns the claim.
+5. **Run-on sentences.** Several ideas welded together with semicolons and em dashes. Give each idea its own sentence.
+6. **Soft phrasal verbs.** Spin up, reach out, dive into, kick off. Use the plain verb: start, contact, read, begin.
+
+Keep the subject, the verb, and the article explicit even where dropping them reads shorter, because "files not backed up will be lost" hides which files. Stack at most three words into a noun phrase, so "the agent task queue priority handler" becomes "the handler that sets task-queue priority". Put three or more steps or conditions into a numbered list rather than burying the sequence inside one sentence.
+
+No word cap applies to a sentence here. A long sentence that carries one idea cleanly is fine, and a long sentence carrying three is not.
+
 ## Voice
 
-First person, past tense, what you did — "I moved the guard into the parser", not "the guard has been moved". Plain and matter-of-fact, the way a colleague explains something standing at your desk. No hype, no cheerleading, no marketing register, no exclamation marks.
+First person, past tense, what you did — "I moved the guard into the parser", not "the guard has been moved". Prefer the active voice and name the actor, unless the actor is genuinely unknown or irrelevant. Plain and matter-of-fact, the way a colleague explains something standing at your desk. No hype, no cheerleading, no marketing register, no exclamation marks.
+
+Never promote a hedge to a fact. "The request may have failed" and "the request failed" are different claims, and confidence is content, so shortening the first into the second is an error rather than a win. The same holds for a cause, a frequency, or a mechanism the evidence did not establish: a summary that reads better because it supplies one has stopped being a summary.
