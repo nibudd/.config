@@ -36,7 +36,7 @@ Note what is *not* flagged: "will attempt to" and "may resolve". Those are hedge
 
 The last sentence branches on whether the conflict was resolved, not on what the strategy allows. That is what "or otherwise" meant in the original: the fallback covers a permitted resolution that still did not happen.
 
-### Example B — Error message
+### Example B — Status report from a tool to the agent that called it
 
 **Before:**
 > An error may have occurred while processing your request due to a possible mismatch in the expected data format, which could be caused by an outdated client version.
@@ -45,7 +45,7 @@ The last sentence branches on whether the conflict was resolved, not on what the
 - One sentence carrying three separate claims (an error occurred, a format mismatch, a client version).
 - 28 words, over the descriptive cap.
 
-Not flagged: "may have occurred" and "could be caused by". The message is written by a system that does not know what went wrong. Both hedges are accurate reporting of that ignorance.
+Not flagged: "may have occurred" and "could be caused by". The report comes from a tool that does not know what went wrong. Both hedges are accurate reporting of that ignorance.
 
 **After:**
 > Your request may have failed. The cause may be a data format that does not match what the server expects. An outdated client can cause this mismatch. Check your client version.
@@ -71,7 +71,7 @@ Two deliberate calls worth stating rather than hiding:
 - "should proceed to consume" became the imperative "read". STE permits this for instructions, where a recommendation addressed to the executing agent is a command. Do not make the same move in descriptive text.
 - The final sentence is **new**. The original warned about partial artifacts without saying what to do about it. Adding the check makes the warning actionable, but it is added content, so it is called out here rather than passed off as a rewrite. If the source's silence was deliberate, drop the sentence.
 
-### Example D — README prose (STE-flavored mode)
+### Example D — Explanatory prose (STE-flavored mode)
 
 **Before:**
 > Our caching layer is designed to slot seamlessly into your existing stack with minimal friction and no vendor lock-in; it leverages semantic similarity to dramatically reduce the cache misses that traditionally plague LLM workloads.

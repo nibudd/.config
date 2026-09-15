@@ -2,7 +2,7 @@
 
 A Claude Code skill that rewrites dense, ambiguous English into [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/) (STE) — the controlled-language standard the aerospace and defense industry built so aircraft maintenance instructions cannot be misread.
 
-This skill repurposes that same discipline for a different reader: an **AI agent** parsing another agent's output, a tool description, an error message, or an inter-agent instruction, with no human in the loop to resolve ambiguity.
+This skill repurposes that same discipline for a different reader: an **AI agent** parsing another agent's output, a tool description, a system prompt, or an inter-agent instruction, with no human in the loop to resolve ambiguity.
 
 ## Why STE, and Why for Agents
 
@@ -21,7 +21,7 @@ More examples, including illustrations of the official STE rules themselves, in 
 
 ## What This Skill Does
 
-1. Picks a mode. **Strict** covers procedures, error messages, and tool descriptions. **STE-flavored** covers READMEs, PR descriptions, and explanatory prose. STE-flavored keeps the sentence discipline but not the fixed-vocabulary lockdown.
+1. Picks a mode. **Strict** covers procedures, system prompts, and tool descriptions. **STE-flavored** covers commit messages, summaries, and explanatory prose. STE-flavored keeps the sentence discipline but not the fixed-vocabulary lockdown.
 2. Reads the input English text for meaning.
 3. Flags every rule violation sentence-by-sentence: ambiguous word choice, present-perfect/complex tense, passive voice with an unclear actor, multi-instruction sentences, oversized noun clusters, dropped words, sentences over length, phrasal verbs, nominalized actions, semicolons, hedge stacks, and marketing adjectives.
 4. Rewrites each flagged sentence — without dropping any fact, condition, or scope qualifier from the original. If a shorter phrasing would lose required precision, it keeps the longer phrasing and flags the trade-off instead of silently simplifying.
@@ -71,7 +71,7 @@ Trigger with a request to simplify or clarify English text:
 
 ```
 Disambiguate this tool description
-Rewrite this error message so an agent can't misparse it
+Rewrite this system prompt so an agent can't misparse it
 Apply ASD-STE100 to this instruction
 ```
 
@@ -81,9 +81,9 @@ You get the rewritten text back and nothing else. To see which rules were applie
 
 ## Scope
 
-Built for: agent-to-agent messages, tool/function descriptions, error messages, system prompts, inter-agent instructions — any English text a machine or non-native reader has to parse without a human to ask.
+Built for: agent-to-agent messages, tool/function descriptions, system prompts, inter-agent instructions — any English text a machine or non-native reader has to parse without a human to ask.
 
-Not built for: creative writing, marketing copy, or anything where voice and nuance are the point — STE is deliberately flat and literal by design.
+Not built for: creative writing, marketing copy, or anything where voice and nuance are the point — STE is deliberately flat and literal by design. Also not for error messages, log lines, code comments or docstrings. Those reach a person as the author's own words. This skill neither writes nor rewrites them.
 
 One limit worth stating up front: this fixes the form of a text, not its substance. A paragraph with nothing to say comes out short, clean, and still empty.
 

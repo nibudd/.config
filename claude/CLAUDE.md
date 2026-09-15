@@ -10,22 +10,34 @@
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
-- **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Default to none, and let the code speak first: if I need prose to explain what something *is* or *does*, rename it or split the function, because a good name is self-maintaining and travels to every call site while a comment does neither. Size whatever survives to the confusion rather than to the effort behind it — a three-line function rarely earns a docstring at all. Three examples of the failure mode:
-
-  ❌ `NOTIFICATION_PATH = "/notifications-callback"  # path for the notifications callback`
-  ✅ Nothing. The name already says it, and restating a signature, a type, or a well-chosen identifier in a sentence adds a line I have to read and keep true.
-
-  ❌ `# was 4x slower before we batched this — see PROG-1225`
-  ✅ Nothing. Git holds the history, a comment written in the past tense against present-tense code is already rot, and a tracker or decision-record id never belongs in code — not the one that motivated the line, not the one that owns the work replacing it, not the one next door. Keep the constraint and drop the citation: *why* a multi-region bucket costs money, not which ADR says so.
-
-  ❌ `# a blocking sleep here would stall every other request`
-  ✅ `# Keeps the wait off the event loop.` State what the code achieves, in the active voice. A counterfactual makes me negate the sentence to recover the actual behaviour and hangs the bad outcome on the line doing the right thing. If the hazard is genuinely the non-obvious part, name it in a clause after the purpose, never instead of it.
-
-  Also out, however true each one is: the alternative you rejected, the measurement that motivated the change, what the caller guarantees or the callee does, what another module or config sets, and what a later ticket will pick up. A comment explains the code it sits on; behaviour that lives in another function is that function's docstring's job, and scope is a fact about the plan rather than about the code.
+- **Add no comments and no docstrings.** If code needs prose to explain what it *is* or *does*, rename it or split the function. A good name is self-maintaining and travels to every call site, and a comment does neither. Where something still raises a question after that, tell me at `file:line` and let me decide whether to write one.
+- **Prose already in the code is mine** — comments, docstrings, error messages, log lines. Leave every one of them exactly as written. Don't correct it, don't delete it, and don't extend it.
+- **Flag two kinds of prose at `file:line` and change neither.** Prose your edit made wrong, and prose near where you're working that reads as AI-written. The radius is the same one a refactor gets: what you touch and what sits beside it, never a sweep of the file. I decide what gets rewritten.
 - **Grep a diff for tracker ids before handing it back** and strip every hit out of the code. If removing one loses something real, it goes in the repo's design doc or the worklog.
 - Rationale I asked for goes in the worklog under `## Decisions`, which is where I read it. Putting it in the source doesn't save me a lookup, it puts it somewhere it will quietly go stale.
 - Don't reformat, re-case, or restyle code whose behaviour you aren't changing — a functional diff should carry no incidental noise. If a cleanup is worth doing, it's its own chunk.
 - Working files I'll want after this session — analysis docs, notes, plans, worklogs, generated reports — go in `~/.claude-work/<key>/`, keyed by the **ticket** I'm working under (`~/.claude-work/PROG-1013/`) so one task keeps one dir even when it spans repos, which mine often do (an API change plus its frontend counterpart). If there's no ticket, the key is `<repo>_<branch>` with any leading dot dropped and any `/` replaced by `_` (`platform` on `PROG-1013/port-metrics` → `platform_PROG-1013_port-metrics`) so keys stay flat. Don't put these files inside a repo — they'd land in a diff — and don't put them under `~/.claude/`, which the harness prunes. `~/.claude-work` is a git repo backed by a private remote and committed and pushed automatically by a Stop hook — write files and move on; never commit or push it yourself. Use the session scratchpad only for genuinely throwaway files, since it gets cleaned up. If something turns out to belong in a repo, move it there and commit it
+
+# The moratorium
+
+I share no AI-written prose with a colleague. You write nothing that another person reads as mine. That covers Jira descriptions and comments, PR titles and bodies, design documents, READMEs, changelogs, Slack messages, and every comment, docstring, error message and log line in the code.
+
+Three things sit outside it:
+
+- **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-review`.
+- **Text I wrote.** Post, commit, or send it verbatim when I hand it to you. Transcription is not authorship. Don't reformat it, don't extend it, and don't run it through the linter.
+- **Anything addressed to me or to a machine.** Replies in conversation, worklogs under `~/.claude-work/`, review findings, tool and function descriptions, prompts, and instructions written for a subagent.
+
+When you would otherwise write the prose:
+
+1. Gather the facts — the diff, the worklog, the evidence, whatever you would have built the text from.
+2. Write me a summary of what happened and why, through the `asd-ste100` skill in STE-flavored mode.
+3. Stop. I write the real text from your summary.
+4. Post it verbatim once I hand it back.
+
+Code you write that needs a new error message or log line hits the same rule. Leave a bare placeholder so the code still runs, tell me the `file:line`, and I write the words.
+
+Never show me a draft to save me a step. A draft I edit is still your prose under my name, and that is the thing this exists to stop.
 
 # Writing style
 
@@ -61,12 +73,12 @@ A few conventions on top of that:
 
 # Simplified Technical English
 
-Documents go through the `asd-ste100` skill before anyone else reads them. Replies to me do not. The output style already carries the compatible half of the rules, and a strict pass on conversation reads as a personality transplant.
+Everything the moratorium leaves you goes through the `asd-ste100` skill. Replies to me do not. The output style already carries the compatible half of the rules, and a strict pass on conversation reads as a personality transplant.
 
 | Text | Mode |
 |---|---|
-| Jira acceptance criteria, error messages, log lines, docstrings, tool and function descriptions, prompts, and instructions written for another agent | Strict |
-| Jira descriptions and comments, PR titles and bodies, commit bodies, READMEs, design docs, changelogs, worklogs | STE-flavored |
+| Tool and function descriptions, prompts, and instructions written for another agent | Strict |
+| Commit subjects and bodies, worklogs, and the summaries you write for me to draft from | STE-flavored |
 | Replies to me in conversation | None. The `colleague` output style covers it |
 
 Invoke the skill for anything longer than a few lines. Below that, apply its rules from memory rather than spending a skill call on a two-sentence commit body.
@@ -79,42 +91,24 @@ python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>
 
 Fix each hard violation unless the fix costs a fact, a hedge, or a scope qualifier. Modality is content, so "the request may have failed" never becomes "the request failed". The linter cannot tell a rule from the bad example that rule quotes. A style guide about writing will always report violations it does not have.
 
-These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A Jira comment stays plain prose with no list, even where STE would break a sequence into numbered steps. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
+These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A summary for a Jira comment stays plain prose with no list, even where STE would break a sequence into numbered steps, because prose is the shape I write from. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
 
 # Jira tickets
 
 - **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
 - **A new ticket is created with an auto-generated subtask.** When I'm creating subtasks on it too, repurpose that one as the first of them — retitle and rewrite it in place — rather than leaving it sitting there and creating a full set alongside it. If I don't need to create subtasks, leave the auto-generated subtask as-is.
 
-# Jira descriptions
+# Jira descriptions and comments
 
-A description is the spec someone builds from, including me after I've forgotten. Unlike a reply to me, it has to establish its own context — but only the context that changes what gets built.
+I write both. You gather and summarize, per the moratorium. These rules say what belongs in the summary you hand me. Size it to what I write from it. A comment lands at 40–80 words, so don't hand me three paragraphs for one.
 
-- **Structure sizes the description, not a word count.** One sentence of problem or goal, then the acceptance criteria, then nothing — unless the missing thing would change what someone builds. A constraint, a schema, an interface shape or an external dependency earns a line; background, motivation and history don't
-- **ACs are checkable conditions, one per line.** Each one states an observable outcome someone can confirm or refute, not a paragraph describing the area. If an AC can't be checked, it's context wearing an AC's clothes — cut it or make it testable
-- **Rationale goes in the worklog, not the description.** Why this approach, what I rejected, what the measurement said — `~/.claude-work/<key>/worklog.md` under `## Decisions`. The description says what has to be true when the work is done
-- **Don't restate the parent.** If the epic or parent ticket already holds it, link and move on
-- **Don't pre-write the implementation.** Naming the files or the sequence inside a description freezes a plan before it's been decided, and leaves the description wrong once it changes. Constraints on the outcome belong here; steps toward it don't
-- **Keep the identifiers that survive, drop the ones that rot.** Ticket keys, file paths, endpoints, table and field names, env var names — yes. Line numbers, commit shas and branch names — no; they're stale by the time anyone reads them
-- **Every ticket reference is a link.** Write it as a link to that ticket (`<site>/browse/<KEY>`), never a bare key sitting in prose. Where the relationship is a real one — blocks, is blocked by, relates to — use Jira's issue link instead of naming it in the text
-- **Leave the process out, and never point at my notes.** No preflight checks, no test counts, no "see my worklog" — same as a comment
+**For a description**, give me the problem or goal in one sentence. Then the conditions someone could check the finished work against, one per line. Each one is an outcome a person can observe. Then any constraint, schema, interface shape or external dependency that would change what someone builds. Leave out background, motivation and history. Leave out the implementation sequence, since naming the files or the steps freezes a plan before I decide it. Leave out whatever the epic or parent ticket already holds, and name that ticket instead.
 
-# Jira comments
+**For a comment**, give me what happened and the one thing still open. Round the numbers and drop the identifiers — "refused it with a 503, no retry within 45min", not exact Zulu timestamps, transaction ids, byte counts or hashes. Never round below what you actually observed: where the observation window *is* the finding, 45 minutes of polling does not become "15min". Name the mechanism in a reader's terms rather than the implementation's — "a 'respond with <status_code>' env var" beats "`FORCE_STATUS`, merged in repo#14". Keep method, rationale and process out. They live in the description or the worklog.
 
-A Jira comment is a status note in a feed, not a report. The detail lives in `~/.claude-work/<key>/`; the comment says what happened and what's next.
+**In both**, keep the identifiers that survive — ticket keys, file paths, endpoints, table and field names, env var names — and drop the ones that rot: line numbers, commit shas, branch names.
 
-- **Target 40–80 words, one or two short paragraphs.** If it wants a heading, it's too long for a comment — put it in the worklog and keep it out of the comment
-- **No headings, tables, bold, or panels.** Plain prose; formatting is for documents
-- **Round the numbers and drop the identifiers.** "refused it with a 503, no retry within 15min" — not exact Zulu timestamps, transaction ids, byte counts, poll counts or hashes. Precision goes in the worklog; the comment carries the shape
-- **Approximate, but never shorter than what was observed.** When the observation window *is* the finding, state the window actually watched — rounding 45 minutes of polling down to "15min" understates the evidence the ticket turns on
-- **Name the mechanism in the reader's terms, not the implementation's.** "a 'respond with <status_code>' env var" beats "`FORCE_STATUS`, merged in repo#14"
-- **First person, past tense, what I did** — "I sent a batch request and refused it with a 503"
-- **Don't restate the ticket.** Method and rationale are already in the description
-- **Leave the process out.** Preflight checks, instrument verification, test counts and CI results are not findings
-- **One clause for what's still open** — Don't justify each open item
-- **Keep design consequences and other tickets out.** Propagating a finding into another ticket's AC is an action on that ticket, not a paragraph here
-- **Never point at my notes.** No "more detail in my notes", "see my worklog", "full analysis elsewhere" — the worklog is private and the pointer is dead weight to the reader. Say the thing at comment altitude or leave it out
-- **A description edit is flagged in a few words, then you say what changed.** "ACs updated." — not "I edited the acceptance criteria, so the description has moved since you last read it". Editing a description is allowed as long as a comment accompanies it, but the comment exists to say what moved, not to announce that something did. Never narrate the edit, and never tell the reader they may be out of date
+Post my text unchanged once I hand it back. Link every ticket reference as `<site>/browse/<KEY>` rather than leaving a bare key in prose. Use Jira's issue link for a real relationship — blocks, is blocked by, relates to — rather than naming it in the text. When I edit a description, I write the comment that goes with it.
 
 # Collaboration style
 
