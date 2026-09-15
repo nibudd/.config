@@ -86,6 +86,8 @@ Apply the findings I approved, then re-run the relevant tests. Commit the fixes 
 
 ### 6. Wrap
 
-Run the full suite once. Report failures with the actual output — don't paper over them. Summarize what landed, leave anything unresolved under Open in the worklog, and stop. **Do not push** — I review before anything goes upstream.
+Grep the branch diff for `TODO: Update Comment` first and list every hit with its `file:line` and the drafted text. Add whatever you flagged as stale or AI-written along the way to the same list. I rewrite them all before a PR goes up.
+
+Then run the full suite once. Report failures with the actual output — don't paper over them. Summarize what landed, leave anything unresolved under Open in the worklog, and stop. **Do not push** — I review before anything goes upstream.
 
 Throughout: prefer stopping at a gate over guessing. If you're unsure whether something is my call, it's my call.

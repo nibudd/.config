@@ -10,7 +10,18 @@
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
-- **Add no comments and no docstrings.** If code needs prose to explain what it *is* or *does*, rename it or split the function. A good name is self-maintaining and travels to every call site, and a comment does neither. Where something still raises a question after that, tell me at `file:line` and let me decide whether to write one.
+- **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Default to none. If prose is needed to explain what something *is* or *does*, rename it or split the function, because a good name is self-maintaining and travels to every call site while a comment does neither. Size whatever survives to the confusion rather than to the effort behind it — a three-line function rarely earns a docstring. Out, however true each one is: the alternative you rejected, the measurement that motivated the change, what the caller guarantees or the callee does, what another module or config sets, and what a later ticket will pick up.
+
+  ❌ `NOTIFICATION_PATH = "/notifications-callback"  # path for the notifications callback`
+  ✅ Nothing. Restating a signature, a type, or a well-chosen identifier adds a line I have to read and keep true.
+
+  ❌ `# was 4x slower before we batched this — see PROG-1225`
+  ✅ Nothing. Git holds the history, and a tracker or decision-record id never belongs in code. Keep the constraint and drop the citation: *why* a multi-region bucket costs money, not which ADR says so.
+
+  ❌ `# a blocking sleep here would stall every other request`
+  ✅ `# Keeps the wait off the event loop.` State what the code achieves, in the active voice. A counterfactual makes me negate the sentence to recover the actual behaviour. If the hazard is genuinely the non-obvious part, name it in a clause after the purpose, never instead of it.
+- **Write whatever survives that bar, prefixed `TODO: Update Comment`.** Comments, docstrings, error messages and log lines alike. For a string a program emits, the prefix goes inside the string, where it can't ship unnoticed. You draft under the old rules and I rewrite — the marker is what lets the moratorium survive a long task without stopping it every few lines.
+- **When the work is done, tell me to sweep the markers before I open a PR.** `grep -rn "TODO: Update Comment"` across what you touched, and list what you find alongside anything the next rule made you flag. No PR goes up with a marker still in it.
 - **Prose already in the code is mine** — comments, docstrings, error messages, log lines. Leave every one of them exactly as written. Don't correct it, don't delete it, and don't extend it.
 - **Flag two kinds of prose at `file:line` and change neither.** Prose your edit made wrong, and prose near where you're working that reads as AI-written. The radius is the same one a refactor gets: what you touch and what sits beside it, never a sweep of the file. I decide what gets rewritten.
 - **Grep a diff for tracker ids before handing it back** and strip every hit out of the code. If removing one loses something real, it goes in the repo's design doc or the worklog.
@@ -40,7 +51,7 @@ When you would otherwise write the prose:
 3. Stop. I write the real text from your summary.
 4. Post it verbatim once I hand it back.
 
-Code you write that needs a new error message or log line hits the same rule. Leave a bare placeholder so the code still runs, tell me the `file:line`, and I write the words.
+Prose inside code is the exception to step 3. Don't stop there — draft it under the comment rules above, prefix it `TODO: Update Comment`, and keep going. I sweep the markers before the PR goes up.
 
 Never show me a draft to save me a step. A draft I edit is still your prose under my name, and that is the thing this exists to stop.
 
