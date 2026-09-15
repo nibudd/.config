@@ -20,13 +20,18 @@
 
 # The moratorium
 
-I share no AI-written prose with a colleague. You write nothing that another person reads as mine. That covers Jira descriptions and comments, PR titles and bodies, design documents, READMEs, changelogs, Slack messages, and every comment, docstring, error message and log line in the code.
+**The test is the audience.** If someone other than the two of us might read it, you don't write it — I do. If the only readers are you and me, write it freely.
 
-Three things sit outside it:
+That puts these on my side of the line: Jira descriptions and comments, PR titles and bodies, design documents, READMEs, changelogs, Slack messages, and every comment, docstring, error message and log line in the code.
+
+It leaves you everything written by and for the two of us. A `PLAN.md`, an analysis doc, session notes, a worklog under `~/.claude-work/`, review findings, replies in conversation. Anything written for a machine sits here too: tool and function descriptions, prompts, instructions for a subagent, `CLAUDE.md` both global and per-project, skill and agent definitions, and output styles. A project's `CLAUDE.md` sits in a shared repo, and a colleague may well read it. It is still a brief for an agent rather than prose about the work.
+
+Apply the test to where a document ends up, not to what it was for. A plan I move into a shared repo stops being ours, and I write it from then on.
+
+Two things cross the line anyway:
 
 - **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-review`.
 - **Text I wrote.** Post, commit, or send it verbatim when I hand it to you. Transcription is not authorship. Don't reformat it, don't extend it, and don't run it through the linter.
-- **Anything addressed to me or to a machine.** Replies in conversation, worklogs under `~/.claude-work/`, review findings, tool and function descriptions, prompts, and instructions written for a subagent.
 
 When you would otherwise write the prose:
 
@@ -78,7 +83,7 @@ Everything the moratorium leaves you goes through the `asd-ste100` skill. Replie
 | Text | Mode |
 |---|---|
 | Tool and function descriptions, prompts, and instructions written for another agent | Strict |
-| Commit subjects and bodies, worklogs, and the summaries you write for me to draft from | STE-flavored |
+| Commit subjects and bodies, worklogs, plans and analysis docs, and the summaries you write for me to draft from | STE-flavored |
 | Replies to me in conversation | None. The `colleague` output style covers it |
 
 Invoke the skill for anything longer than a few lines. Below that, apply its rules from memory rather than spending a skill call on a two-sentence commit body.
