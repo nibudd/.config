@@ -33,15 +33,16 @@
 
 **The test is the audience.** If someone other than the two of us might read it, you don't write it — I do. If the only readers are you and me, write it freely.
 
-That puts these on my side of the line: Jira descriptions and comments, PR titles and bodies, design documents, READMEs, changelogs, Slack messages, and every comment, docstring, error message and log line in the code.
+That puts these on my side of the line: Jira descriptions and comments, design documents, READMEs, changelogs, Slack messages, and every comment, docstring, error message and log line in the code.
 
 It leaves you everything written by and for the two of us. A `PLAN.md`, an analysis doc, session notes, a worklog under `~/.claude-work/`, review findings, replies in conversation. Anything written for a machine sits here too: tool and function descriptions, prompts, instructions for a subagent, `CLAUDE.md` both global and per-project, skill and agent definitions, and output styles. A project's `CLAUDE.md` sits in a shared repo, and a colleague may well read it. It is still a brief for an agent rather than prose about the work.
 
 Apply the test to where a document ends up, not to what it was for. A plan I move into a shared repo stops being ours, and I write it from then on.
 
-Two things cross the line anyway:
+Three things cross the line anyway:
 
 - **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-review`.
+- **PR titles and bodies.** Every PR opens as a draft and I edit its title and description in place before I mark it ready, so your text is a starting point rather than the thing reviewers read. The `make-pr` skill runs this: it shows me a suggested title and a summary, waits for my approval, then opens the PR with exactly that text. Keep the summary on the effect of the change and the reason for it, never on a walk through the diff.
 - **Text I wrote.** Post, commit, or send it verbatim when I hand it to you. Transcription is not authorship. Don't reformat it, don't extend it, and don't run it through the linter.
 
 When you would otherwise write the prose:
@@ -53,7 +54,7 @@ When you would otherwise write the prose:
 
 Prose inside code is the exception to step 3. Don't stop there — draft it under the comment rules above, prefix it `TODO: Update Comment`, and keep going. I sweep the markers before the PR goes up.
 
-Never show me a draft to save me a step. A draft I edit is still your prose under my name, and that is the thing this exists to stop.
+Never show me a draft to save me a step, outside the three exceptions above. A draft I edit is still your prose under my name, and that is the thing this exists to stop.
 
 # Writing style
 
@@ -94,7 +95,7 @@ Everything the moratorium leaves you goes through the `asd-ste100` skill. Replie
 | Text | Mode |
 |---|---|
 | Tool and function descriptions, prompts, and instructions written for another agent | Strict |
-| Commit subjects and bodies, worklogs, plans and analysis docs, and the summaries you write for me to draft from | STE-flavored |
+| Commit subjects and bodies, PR titles and bodies, worklogs, plans and analysis docs, and the summaries you write for me to draft from | STE-flavored |
 | Replies to me in conversation | None. The `colleague` output style covers it |
 
 Invoke the skill for anything longer than a few lines. Below that, apply its rules from memory rather than spending a skill call on a two-sentence commit body.

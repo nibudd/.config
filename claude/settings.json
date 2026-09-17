@@ -1,6 +1,5 @@
 {
   "model": "opus[1m]",
-  "outputStyle": "colleague",
   "hooks": {
     "SessionStart": [
       {
@@ -35,5 +34,48 @@
       }
     }
   },
-  "skipAutoPermissionPrompt": true
+  "outputStyle": "colleague",
+  "skipAutoPermissionPrompt": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: recurve-inc (GitHub org; this repo is `recurve-inc/platform`)",
+      "**Cloud provider(s)**: Google Cloud Platform (gcloud CLI used; GSM/Secret Manager referenced; GCP deploy/terraform workflows present)",
+      "**Repository visibility**: private (confirmed via gh) — Rulesets: `DCF-5 PR review` active",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: Google Secret Manager, environment-scoped projects `recurve-secrets-production` / `recurve-secrets-staging` (never `oee-secrets`, retiring); secrets delivered to apps as Terraform-generated env vars (`env.value_source.secret_key_ref`), not via the Secret Manager client library except for services that must reload config mid-run; only the Terraform/CI service account gets per-secret read access, app service accounts get none",
+      "**Default / protected branches**: `main` (default), `develop` and `main` protected via ruleset `DCF-5 PR review` (active) — Protected branches list from classic branch protection was empty, but the active ruleset covers this",
+      "**CI/CD deploy targets**: GitHub Actions — merge to `main` auto-deploys to staging; production deploy is a manual `Release` GitHub Action followed by `Frontend Promote to Production`; workflows include `.github/workflows/gcp_deploy_prod_gcs_gdrive_sync.yml`, `.github/workflows/terraform-production.yml`, `.github/workflows/terraform-staging.yml`",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine with open internet",
+      "**Source control**: GitHub, `recurve-inc/platform` (this repo) and its `origin` remote (github.com:recurve-inc/platform.git) only",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: `oee-pge-platform`, `oee-staging-shared-static`, `oee-production-shared-static` (config-derived — not a confirmed upload destination; uploads of local data still require confirmation)",
+      "**Key internal services**: FusionAuth (OIDC auth), Kubernetes (job dispatch via `kubernetes_job_caller.py` / `kubernetes_job.py`), RabbitMQ/Celery (legacy async workers)",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: `.env`, `local-google-adc.env`, `secrets/` (gitignored); Terraform state and config under `terraform/production/` and `terraform/staging/`; CI secrets `GSM_SA_CREDENTIAL`, `PIP_EXTRA_INDEX_URL`, `SECRET_KEY`; production DB accessed via `scripts/prod-db-clone.sh`, `scripts/prod-psql.sh`, `scripts/prod-manage.sh` — production data requires authorization per CLAUDE.md",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace/host/container with `prod` or `production` as a whole word/segment — includes `recurve-secrets-production`, `oee-production-shared-static`, `terraform/production/`, and scripts named `prod-*` (`prod-db-clone.sh`, `prod-manage.sh`, `prod-psql.sh`, `cleanup_prod_gcp_container_test.sh`, `test_prod_gcp_container_build.sh`)",
+      "**Protected deployment namespaces / environments**: production Kubernetes/GCP targets and the `recurve-secrets-production` Secret Manager project; staging equivalents (`recurve-secrets-staging`, `oee-staging-shared-static`) are lower-sensitivity but still environment-scoped and not to be conflated with production",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, node-pool resources; `terraform/production/` (main.tf, providers.tf, data_sources.tf) and `terraform/staging/`; do not read another repo's Terraform remote state per CLAUDE.md — pin values as literals or use a live data source instead",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (Recurve Platform monorepo: Django backend, Vue3 frontend, Flask eligibility service)",
+      "**Trusted repo**: `/Users/nibudd/dev/platform` (recurve-inc/platform, private) and its `origin` remote — private visibility means confidential material is fine to commit here, but secrets/credentials are never cleared into the repo by visibility alone",
+      "**Org-specific CLIs**: gcloud (GCP), gh (GitHub), direnv (env loading — repo's `scripts/` on PATH after direnv load), docker/docker compose (all services run in containers), uv (Python dependency management), scripts/*.sh wrappers (test.sh, manage.sh, psql.sh, shell.sh, uv.sh, reseed.sh, eslint.sh, type_check.sh, portal.sh, shadcn.sh, storybook.sh)",
+      "**routine under this repo's scripts/ prefix**: `scripts/test.sh`, `scripts/manage.sh`, `scripts/eslint.sh`, `scripts/type_check.sh`, `scripts/reseed.sh` are routine dev-loop commands; `scripts/prod-*.sh` are explicitly production-scoped and excluded from routine treatment"
+    ],
+    "allow": [
+      "$defaults",
+      "Bash(scripts/test.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/manage.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/eslint.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/type_check.sh:*) in /Users/nibudd/dev/platform"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(scripts/prod-db-clone.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/prod-manage.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/prod-psql.sh:*) in /Users/nibudd/dev/platform"
+    ]
+  }
 }
