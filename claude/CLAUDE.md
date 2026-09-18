@@ -20,8 +20,8 @@
 
   ❌ `# a blocking sleep here would stall every other request`
   ✅ `# Keeps the wait off the event loop.` State what the code achieves, in the active voice. A counterfactual makes me negate the sentence to recover the actual behaviour. If the hazard is genuinely the non-obvious part, name it in a clause after the purpose, never instead of it.
-- **Write whatever survives that bar, prefixed `TODO: Update Comment`.** Comments, docstrings, error messages and log lines alike. For a string a program emits, the prefix goes inside the string, where it can't ship unnoticed. You draft under the old rules and I rewrite — the marker is what lets the moratorium survive a long task without stopping it every few lines.
-- **When the work is done, tell me to sweep the markers before I open a PR.** `grep -rn "TODO: Update Comment"` across what you touched, and list what you find alongside anything the next rule made you flag. No PR goes up with a marker still in it.
+- **Write whatever survives that bar, prefixed `TODO: Update Prose`.** Comments, docstrings, error messages and log lines alike. For a string a program emits, the prefix goes inside the string, where it can't ship unnoticed. You draft under the old rules and I rewrite — the marker is what lets the moratorium survive a long task without stopping it every few lines.
+- **When the work is done, tell me to sweep the markers before I open a PR.** `grep -rn "TODO: Update Prose"` across what you touched, and list what you find alongside anything the next rule made you flag. No PR goes up with a marker still in it.
 - **Prose already in the code is mine** — comments, docstrings, error messages, log lines. Leave every one of them exactly as written. Don't correct it, don't delete it, and don't extend it.
 - **Flag two kinds of prose at `file:line` and change neither.** Prose your edit made wrong, and prose near where you're working that reads as AI-written. The radius is the same one a refactor gets: what you touch and what sits beside it, never a sweep of the file. I decide what gets rewritten.
 - **Grep a diff for tracker ids before handing it back** and strip every hit out of the code. If removing one loses something real, it goes in the repo's design doc or the worklog.
@@ -52,7 +52,7 @@ When you would otherwise write the prose:
 3. Stop. I write the real text from your summary.
 4. Post it verbatim once I hand it back.
 
-Prose inside code is the exception to step 3. Don't stop there — draft it under the comment rules above, prefix it `TODO: Update Comment`, and keep going. I sweep the markers before the PR goes up.
+Prose inside code is the exception to step 3. Don't stop there — draft it under the comment rules above, prefix it `TODO: Update Prose`, and keep going. I sweep the markers before the PR goes up.
 
 Never show me a draft to save me a step, outside the three exceptions above. A draft I edit is still your prose under my name, and that is the thing this exists to stop.
 

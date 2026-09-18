@@ -22,11 +22,11 @@ In parallel, run:
 - `git diff --stat <base>...HEAD` — the size and shape
 - `gh pr list --head <current-branch> --state all` — whether a PR already exists
 - `git status` — uncommitted work
-- `git diff <base>...HEAD | grep -n 'TODO: Update Comment'` — prose in the diff still waiting on me
+- `git diff <base>...HEAD | grep -n 'TODO: Update Prose'` — prose in the diff still waiting on me
 
 Stop if: I'm on the default branch, there are no commits ahead of base, or `gh` isn't authenticated (`gh auth status`).
 
-**Stop if a `TODO: Update Comment` marker survives anywhere in the diff.** List each one with its `file:line` and the drafted text beside it, then wait. Add whatever you flagged as stale or AI-written while you worked to the same list. I rewrite them and commit before any PR goes up.
+**Stop if a `TODO: Update Prose` marker survives anywhere in the diff.** List each one with its `file:line` and the drafted text beside it, then wait. Add whatever you flagged as stale or AI-written while you worked to the same list. I rewrite them and commit before any PR goes up.
 
 Never commit, stage, or stash anything. If there's uncommitted work, say what it is and that it won't be included, then continue.
 
