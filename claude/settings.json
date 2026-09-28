@@ -35,8 +35,24 @@
     }
   },
   "outputStyle": "colleague",
+  "modelSettings": {
+    "claude-opus-5-5": {}
+  },
   "skipAutoPermissionPrompt": true,
   "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(scripts/test.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/manage.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/eslint.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/type_check.sh:*) in /Users/nibudd/dev/platform"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(scripts/prod-db-clone.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/prod-manage.sh:*) in /Users/nibudd/dev/platform",
+      "Bash(scripts/prod-psql.sh:*) in /Users/nibudd/dev/platform"
+    ],
     "environment": [
       "### Org-wide",
       "**Organization**: recurve-inc (GitHub org; this repo is `recurve-inc/platform`)",
@@ -63,19 +79,6 @@
       "**Trusted repo**: `/Users/nibudd/dev/platform` (recurve-inc/platform, private) and its `origin` remote — private visibility means confidential material is fine to commit here, but secrets/credentials are never cleared into the repo by visibility alone",
       "**Org-specific CLIs**: gcloud (GCP), gh (GitHub), direnv (env loading — repo's `scripts/` on PATH after direnv load), docker/docker compose (all services run in containers), uv (Python dependency management), scripts/*.sh wrappers (test.sh, manage.sh, psql.sh, shell.sh, uv.sh, reseed.sh, eslint.sh, type_check.sh, portal.sh, shadcn.sh, storybook.sh)",
       "**routine under this repo's scripts/ prefix**: `scripts/test.sh`, `scripts/manage.sh`, `scripts/eslint.sh`, `scripts/type_check.sh`, `scripts/reseed.sh` are routine dev-loop commands; `scripts/prod-*.sh` are explicitly production-scoped and excluded from routine treatment"
-    ],
-    "allow": [
-      "$defaults",
-      "Bash(scripts/test.sh:*) in /Users/nibudd/dev/platform",
-      "Bash(scripts/manage.sh:*) in /Users/nibudd/dev/platform",
-      "Bash(scripts/eslint.sh:*) in /Users/nibudd/dev/platform",
-      "Bash(scripts/type_check.sh:*) in /Users/nibudd/dev/platform"
-    ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(scripts/prod-db-clone.sh:*) in /Users/nibudd/dev/platform",
-      "Bash(scripts/prod-manage.sh:*) in /Users/nibudd/dev/platform",
-      "Bash(scripts/prod-psql.sh:*) in /Users/nibudd/dev/platform"
     ]
   }
 }

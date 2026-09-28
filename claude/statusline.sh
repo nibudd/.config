@@ -1,7 +1,7 @@
 #!/bin/bash
 # Status line for Claude Code. Claude Code sends session JSON on stdin.
 #
-# Line 1 — what is running:   [Model · effort] 📁 folder ⎇ branch
+# Line 1 — what is running:   [Model effort-bars] 📁 folder  branch
 # Line 2 — what is used up:   ctx 155k/1M 15% │ 5h 23% ↻14:30 │ 7d 41% ↻Fri 09:00
 #
 # Percentages are coloured: green below 50, yellow below 80, red from 80.
@@ -52,13 +52,26 @@ epoch_to_clock() {
   date -d "@$1" "$2" 2>/dev/null || date -r "$1" "$2"
 }
 
+effort_icon() {
+  local glyph colour
+  case $1 in
+    low)    glyph=$'\xf3\xb0\xa3\xbe'; colour=$'\e[90m' ;;
+    medium) glyph=$'\xf3\xb0\xa3\xb4'; colour=$'\e[34m' ;;
+    high)   glyph=$'\xf3\xb0\xa3\xb6'; colour=$'\e[32m' ;;
+    xhigh)  glyph=$'\xf3\xb0\xa3\xb8'; colour=$'\e[33m' ;;
+    max)    glyph=$'\xf3\xb0\xa3\xba'; colour=$'\e[31m' ;;
+    *)      printf '%s' "$1"; return ;;
+  esac
+  printf '%s%s%s' "$colour" "$glyph" "$RESET"
+}
+
 # Line 1: model, effort, folder, branch.
 HEAD="$MODEL"
-[[ -n $EFFORT ]] && HEAD="$HEAD · $EFFORT"
+[[ -n $EFFORT ]] && HEAD="$HEAD $(effort_icon "$EFFORT")"
 LINE1="[$HEAD] 📁 ${DIR##*/}"
 if [[ -n $DIR ]]; then
   BRANCH=$(git -C "$DIR" --no-optional-locks branch --show-current 2>/dev/null)
-  [[ -n $BRANCH ]] && LINE1+=" ${DIM}⎇${RESET} $BRANCH"
+  [[ -n $BRANCH ]] && LINE1+=" ${DIM}${RESET} $BRANCH"
 fi
 
 # Line 2: context window, then the two rate-limit windows.
