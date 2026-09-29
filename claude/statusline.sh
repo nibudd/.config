@@ -67,20 +67,20 @@ effort_icon() {
 
 # Line 1: model, effort, folder, branch.
 HEAD="$MODEL"
-[[ -n $EFFORT ]] && HEAD="$HEAD $(effort_icon "$EFFORT")"
-LINE1="[$HEAD] 📁 ${DIR##*/}"
+[[ -n $EFFORT ]] && HEAD="${DIM}${RESET} $HEAD $(effort_icon "$EFFORT")"
+LINE1="$HEAD${SEP}${DIM}${RESET} ${DIR##*/}"
 if [[ -n $DIR ]]; then
   BRANCH=$(git -C "$DIR" --no-optional-locks branch --show-current 2>/dev/null)
-  [[ -n $BRANCH ]] && LINE1+=" ${DIM}${RESET} $BRANCH"
+  [[ -n $BRANCH ]] && LINE1+=" ${SEP}${DIM}${RESET} $BRANCH"
 fi
 
 # Line 2: context window, then the two rate-limit windows.
-LINE2="ctx $(human "$CTX_TOK")/$(human "$CTX_MAX") $(pct "$CTX_PCT")"
+LINE2="${DIM}󰊦${RESET} $(human "$CTX_TOK")/$(human "$CTX_MAX") $(pct "$CTX_PCT")"
 if [[ -n $H5_PCT ]]; then
-  LINE2+="${SEP}5h $(pct "$H5_PCT") ${DIM}↻$(epoch_to_clock "$H5_RESET" +%H:%M)${RESET}"
+  LINE2+="${SEP}${DIM}${RESET} $(pct "$H5_PCT") ${DIM}↻$(epoch_to_clock "$H5_RESET" +%H:%M)${RESET}"
 fi
 if [[ -n $D7_PCT ]]; then
-  LINE2+="${SEP}7d $(pct "$D7_PCT") ${DIM}↻$(epoch_to_clock "$D7_RESET" '+%a %H:%M')${RESET}"
+  LINE2+="${SEP}${DIM}󰨳${RESET} $(pct "$D7_PCT") ${DIM}↻$(epoch_to_clock "$D7_RESET" '+%a %H:%M')${RESET}"
 fi
 
 echo "$LINE1"
