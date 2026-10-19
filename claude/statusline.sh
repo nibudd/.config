@@ -71,7 +71,7 @@ HEAD="$MODEL"
 LINE1="$HEAD${SEP}${DIM}${RESET} ${DIR##*/}"
 if [[ -n $DIR ]]; then
   BRANCH=$(git -C "$DIR" --no-optional-locks branch --show-current 2>/dev/null)
-  [[ -n $BRANCH ]] && LINE1+=" ${SEP}${DIM}${RESET} $BRANCH"
+  [[ -n $BRANCH ]] && LINE1+="${SEP}${DIM}${RESET} $BRANCH"
 fi
 
 # Line 2: context window, then the two rate-limit windows.
