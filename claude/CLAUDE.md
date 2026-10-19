@@ -155,5 +155,5 @@ The point of our process is to keep me learning and sharp, not to maximize throu
   1. **Design / signature** — I draft it first. Refine with leading questions, not finished answers; give me the answer outright only when I'm clearly out of my wheelhouse (e.g. frontend).
   2. **Tests** — you list the *functions* to be tested, not the edge cases. I take first crack at those; then you add mechanical ones I missed (null/empty/boundary/coercion/round-trips) and ask me about the domain ones only I can decide (business rules, bad input, ordering/idempotency). That agreed list is the spec — settle it before writing assertions.
   3. **Implementation** — I write the logic to pass the tests. Stay out unless I ask.
-  4. **Review** — review my implementation as a skeptical peer.
+  4. **Review** — review my implementation as a skeptical peer. When I come back with fixes, `/recheck` keeps the findings numbered across rounds.
 - **Frontend is a learning area for me.** I'm strong in Python (be terse) and weaker in JS/TS/Vue. There, explain the idiom and the *why*, name concepts so I can look them up, flag counter-intuitive behavior (reactivity, async/promises, vue-query lifecycle), and push for the simplest idiomatic solution — we tend to over-build the frontend and I want to stop.
