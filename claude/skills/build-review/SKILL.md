@@ -27,7 +27,7 @@ Then delegate the plan to the **`plan-critic`** agent, **on a model other than t
 
 Then refute its findings the same way stage 4 refutes `diff-critic`'s: one **`refuter`** per finding, in a fresh context, in parallel, with the claim and nothing of the critic's reasoning. A plan finding predicts a consequence, but it rests on present-tense evidence a refuter can check — whether that consumer exists, whether that symbol is public, whether another step already covers it. A finding is real unless its refuter killed it with a concrete cited reason.
 
-**Gate:** present the plan, what you cut and why, the surviving `plan-critic` findings, the refuted ones as one line each (claim + why it was killed, so I can overrule the filter), and the gate-flagged steps. Name the model you delegated to. Then STOP and wait for my "ok"/tweaks before implementing.
+**Gate:** present the plan, what you cut and why, the surviving `plan-critic` findings, the refuted ones as one line each (claim + why it was killed, so I can overrule the filter), and the gate-flagged steps. Give each gate-flagged step the gate shape from my CLAUDE.md: the question in one sentence that ends in `?`, each option in one or two sentences, then your recommendation and its reason in one sentence. Name the model you delegated to. Then STOP and wait for my "ok"/tweaks before implementing.
 
 ### 2. Implement, verify, and commit — per step
 
@@ -39,7 +39,7 @@ For each step in order:
 4. Update the worklog: tick the step, and record any non-obvious choice under Decisions.
 5. Post **one line** saying what landed, and continue to the next step without waiting.
 
-**If a step hits a decision gate** — two or more defensible answers, my owned areas, a public interface or contract, or hard to reverse — stop instead. Ask what I'd do first, then show your answer and reconcile. Resume once I've called it.
+**If a step hits a decision gate** — two or more defensible answers, my owned areas, a public interface or contract, or hard to reverse — stop instead. Number each open item and use the gate shape from my CLAUDE.md: the question in one sentence that ends in `?`, each option in one or two sentences, then your recommendation and its reason in one sentence. Ask what I'd do first, then show your answer and reconcile. Resume once I've called it.
 
 If five steps pass with no gate, stop and summarize anyway.
 
@@ -78,7 +78,7 @@ Attack the diff, don't bless it. A clean review is a conclusion you reach by loo
 2. For **each** finding it returns, spawn a **`refuter`** in a fresh context — one per finding, in parallel. Refuters must not see `diff-critic`'s reasoning; give them the claim and the code, nothing more.
 3. A finding is real unless its refuter killed it **with a concrete cited reason** — a guard, contract, test, or misread at a named `file:line`. "Probably fine" is not a refutation.
 
-**Gate:** present the surviving findings in full, the refuted ones as one line each (claim + why it was killed, so I can see what got filtered and overrule it), the branch diff, and the Decisions section. Then STOP. This is my main review surface — the decisions I didn't gate on land here. Wait for my call on which findings to fix.
+**Gate:** present the surviving findings, numbered. For each one, say what is wrong in one or two sentences, then the fix you propose in one sentence. Then present the refuted ones as one line each (claim + why it was killed, so I can see what got filtered and overrule it), the branch diff, and the Decisions section. Then STOP. This is my main review surface — the decisions I didn't gate on land here. Wait for my call on which findings to fix.
 
 ### 5. Fix
 

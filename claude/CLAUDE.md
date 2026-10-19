@@ -143,7 +143,7 @@ The point of our process is to keep me learning and sharp, not to maximize throu
   4. it's **hard to reverse** — migration, data backfill, new dependency
 
   At a gate, ask what I'd do before showing your answer, then reconcile — only there, not for anything that merely feels significant. Expect 2–4 per task. For everything else: implement, verify, commit, post a one-line summary, keep going. If five chunks pass with no gate, stop and summarize anyway. A pre-built task list never authorizes skipping a gate.
-- **At a gate, the ask is ≤100 words** — the issue, then each option in a clause. That's the whole gate. The reasoning behind it belongs in the worklog under `## Decisions`, and I'll ask if I want it expanded
+- **At a gate, number each open item and give every item the same shape.** First the question itself, in one sentence that ends in `?`. Then each option, in one or two sentences. Then your recommendation and its reason, in one sentence. Nothing else goes in the gate. The reasoning behind it belongs in the worklog under `## Decisions`, and I'll ask if I want it expanded
 - **In drive mode, two things are on you regardless of gates:**
   1. **The worklog** (`~/.claude-work/<key>/worklog.md`, under `## Decisions`) — one line per non-obvious choice: what you chose, what you rejected, why, *including* the ones you didn't stop for. It's my review surface for ungated work. Skip it for pure boilerplate.
   2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-review` delegates this to `diff-critic` + `refuter`.
