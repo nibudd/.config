@@ -1,6 +1,7 @@
 - Design for testability, with a preference for the "functional core, imperative shell" pattern
 - Prefer simple designs
 - Prefer designs that make use of well-known software design patterns
+- When behaviour varies by type, give each type a method rather than writing a `match`/`case` or an `isinstance` chain in a shared function. Where the types share a real contract, make it an abstract base class with an abstract method, not a union type
 - Prefer tests with no/few mocks
 - Prefer parametrized tests when possible
 - Never use typeof for validation in TS/JS; use zod instead
@@ -9,7 +10,8 @@
 - **Don't read another repo's Terraform state.** A `data "terraform_remote_state"` block pointing at a stack this root module doesn't own buys a value or two at the price of a standing dependency on someone else's state layout, and it hands this repo read access to the whole of that state — routing around the IAM that would otherwise scope what it can see. Pin the value as a literal instead, or read the live resource with an ordinary data source; an apply that fails loudly when the resource is recreated beats a silent cross-stack coupling. Reading a different prefix of state this same repo writes is fine.
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
-- Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability
+- Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability. This applies even when the helper is one expression: a function whose other statements talk about sheets and blocks does not also increment a row counter
+- In Python, a leading underscore means private: not referenced outside its module or class. Name a helper that another module imports without one, and don't add underscores to new names by default
 - **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Default to none. If prose is needed to explain what something *is* or *does*, rename it or split the function, because a good name is self-maintaining and travels to every call site while a comment does neither. Size whatever survives to the confusion rather than to the effort behind it — a three-line function rarely earns a docstring. Out, however true each one is: the alternative you rejected, the measurement that motivated the change, what the caller guarantees or the callee does, what another module or config sets, and what a later ticket will pick up.
 
   ❌ `NOTIFICATION_PATH = "/notifications-callback"  # path for the notifications callback`
@@ -144,6 +146,7 @@ The point of our process is to keep me learning and sharp, not to maximize throu
 
   At a gate, ask what I'd do before showing your answer, then reconcile — only there, not for anything that merely feels significant. Expect 2–4 per task. For everything else: implement, verify, commit, post a one-line summary, keep going. If five chunks pass with no gate, stop and summarize anyway. A pre-built task list never authorizes skipping a gate.
 - **At a gate, number each open item and give every item the same shape.** First the question itself, in one sentence that ends in `?`. Then each option, in one or two sentences. Then your recommendation and its reason, in one sentence. Nothing else goes in the gate. The reasoning behind it belongs in the worklog under `## Decisions`, and I'll ask if I want it expanded
+- **A settled decision stays settled.** Once we reject an option, don't list it in a handback, don't put it under `## Open`, and don't re-explain it unless I ask. It goes under `## Decisions` as the thing we rejected. `## Open` holds only what needs a decision or is blocked
 - **In drive mode, two things are on you regardless of gates:**
   1. **The worklog** (`~/.claude-work/<key>/worklog.md`, under `## Decisions`) — one line per non-obvious choice: what you chose, what you rejected, why, *including* the ones you didn't stop for. It's my review surface for ungated work. Skip it for pure boilerplate.
   2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-review` delegates this to `diff-critic` + `refuter`.

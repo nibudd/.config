@@ -106,7 +106,7 @@ The summary is the PR body. Keep it short. The reviewer's attention is the scarc
 - **Stacked line** only when there's more than one PR. Single PR: omit it entirely.
 - **What** — the effect of the change. Name behaviour and structure, not paths, except where a path is the clearest way to say it. A point says what is now true that wasn't before. It never names a commit, and it names a file only when that file *is* the effect.
 - **Why** — what was broken or missing, or what this unblocks. Take it from the `## Decisions` section of the worklog, which holds the part the diff can't show. If the PR doesn't change production behaviour yet, say so here in a clause.
-- **Notes** — a third `# Notes` section is allowed but **default to omitting it**. Add it only for something a reviewer would otherwise get wrong: a load-bearing ordering constraint, a rejected alternative, an accepted risk, a generated-file line count. Hard cap 3 bullets, one line each.
+- **Notes** — a third `# Notes` section is allowed but **default to omitting it**. Add it only for something a reviewer would otherwise get wrong: a load-bearing ordering constraint, a rejected alternative, an accepted risk, a generated-file line count. Hard cap 3 bullets, one line each. Before you add a note, look for the line of code or the code comment that already says it. If one exists, drop the note. A note never compares the PR to its ticket's original acceptance criteria, because the reviewer reads the code, not the ticket.
 
 Never include:
 
