@@ -1,9 +1,9 @@
 -- render a markdown preview in the browser
 return {
-	"selimacerbas/markdown-preview.nvim",
+	"selimacerbas/mdkite.nvim",
 	dependencies = { "selimacerbas/live-server.nvim" },
 	config = function()
-		require("markdown_preview").setup({
+		require("mdkite").setup({
 			port = 8421, -- server port
 			open_browser = true, -- auto-open browser on start
 
@@ -23,14 +23,9 @@ return {
 			debounce_ms = 300, -- debounce interval
 			notify_on_refresh = false, -- show notification on refresh
 
-			vim.keymap.set("n", "<leader>mps", "<cmd>MarkdownPreview<cr>", { desc = "Markdown: Start preview" }),
-			vim.keymap.set("n", "<leader>mpS", "<cmd>MarkdownPreviewStop<cr>", { desc = "Markdown: Stop preview" }),
-			vim.keymap.set(
-				"n",
-				"<leader>mpr",
-				"<cmd>MarkdownPreviewRefresh<cr>",
-				{ desc = "Markdown: Refresh preview" }
-			),
+			vim.keymap.set("n", "<leader>mps", "<cmd>MdKite start<cr>", { desc = "Markdown: Start preview" }),
+			vim.keymap.set("n", "<leader>mpS", "<cmd>MdKite stop<cr>", { desc = "Markdown: Stop preview" }),
+			vim.keymap.set("n", "<leader>mpr", "<cmd>MdKite refresh<cr>", { desc = "Markdown: Refresh preview" }),
 		})
 	end,
 }
