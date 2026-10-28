@@ -10,9 +10,11 @@ return {
 		{
 			"<leader>ff",
 			function()
-				require("telescope.builtin").find_files()
+				require("telescope.builtin").find_files({
+					find_command = { "rg", "--files", "--color", "never", "--ignore-file", hidden_allow },
+				})
 			end,
-			desc = "find files, respecting .gitignore",
+			desc = "find files, respecting .gitignore but including allowed hidden files",
 		},
 		{
 			"<leader>ls",
@@ -26,22 +28,15 @@ return {
 			function()
 				require("telescope.builtin").live_grep({ additional_args = { "--ignore-file", hidden_allow } })
 			end,
-			desc = "live grep, respecting .gitignore",
-		},
-		{
-			"<leader>lf",
-			function()
-				require("telescope.builtin").live_grep({
-					additional_args = { "--no-ignore" },
-					prompt_title = "Live Grep (no ignore)",
-				})
-			end,
-			desc = "live grep, ignoring .gitignore",
+			desc = "live grep, respecting .gitignore but including allowed hidden files",
 		},
 		{
 			"<leader>wg",
 			function()
-				require("telescope.builtin").live_grep({ default_text = vim.fn.expand("<cword>") })
+				require("telescope.builtin").live_grep({
+					additional_args = { "--ignore-file", hidden_allow },
+					default_text = vim.fn.expand("<cword>"),
+				})
 			end,
 			desc = "open live grep with the word under the cursor",
 		},
