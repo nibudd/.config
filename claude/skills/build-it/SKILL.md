@@ -28,6 +28,16 @@ Cite `file:line` for every claim so I can open it. Don't propose an approach, an
 
 Write the tour to the worklog under `## Map` (format below), so it survives a context clear and I can come back to it.
 
+Add a Mermaid `flowchart` to `## Map` when the request path crosses three or more modules, or when a contract you touch has more than two consumers. Put the diagram above the bullets. Write one line that states the encoding before the diagram, and give the diagram a legend that lists every colour and line style. Use node labels that match the `file:line` bullets, so that I can find each node in the list. Do not draw a diagram when neither condition holds.
+
+Open the worklog in my browser with a live preview, so that I can read the tour while I ask questions. Run this command once, in the background, after you write `## Map`:
+
+```
+nohup nvim --headless --listen "${TMPDIR}build-it-<key>.sock" ~/.claude-work/<key>/worklog.md -c "luafile ~/.claude/skills/build-it/preview.lua" >/dev/null 2>&1 &
+```
+
+The preview reloads each time you write the worklog, until stage 8 stops it. If the socket already exists, a preview for this task is running: do not start a second one. If the command fails, tell me in one line and continue without the preview.
+
 Then STOP. I'll ask questions until I could explain the code myself. Answer them, and add to `## Map` whatever an answer taught me that the tour missed. Move on only when I say I'm oriented.
 
 ### 2. Direct
@@ -174,5 +184,7 @@ Then review **only the fix commits**: one `diff-critic` run on that range, on th
 Grep the branch diff for `TODO: Update Prose` first and list every hit with its `file:line` and the drafted text. Add whatever you flagged as stale or AI-written along the way to the same list. I rewrite them all before a PR goes up.
 
 Then run the full suite once. Report failures with the actual output — don't paper over them. Summarize what landed — at Low, followed by the review findings from stage 6 in the gate shape, and wait for my call on them. Leave anything unresolved under Open in the worklog, and stop. Open holds only what needs a decision or is blocked. An option we rejected goes under Decisions, never under Open or in the summary. **Do not push** — I review before anything goes upstream.
+
+Stop the worklog preview from stage 1, if it runs: `nvim --server "${TMPDIR}build-it-<key>.sock" --remote-send '<C-\><C-n>:qa!<CR>'`.
 
 Throughout: prefer stopping at a gate over guessing. If you're unsure whether something is my call, it's my call.
