@@ -8,6 +8,7 @@ import sys
 
 MARKER = "TODO: Update Prose"
 TICKET_KEY = re.compile(r"\b(?:PROG|CO)-\d+\b")
+PR_COMMAND = re.compile(r"\bgh\s+pr\s+(?:create|ready)\b")
 
 
 def git(repo, *args):
@@ -49,7 +50,10 @@ def violations(lines):
 
 def main():
     event = json.load(sys.stdin)
-    repo = repo_dir(event["cwd"], event["tool_input"]["command"])
+    command = event["tool_input"]["command"]
+    if not PR_COMMAND.search(command):
+        return 0
+    repo = repo_dir(event["cwd"], command)
     if subprocess.run(["git", "-C", repo, "rev-parse"], capture_output=True).returncode:
         return 0
     found = list(violations(added_lines(repo, base_ref(repo))))

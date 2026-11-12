@@ -1,0 +1,58 @@
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+HOOK = Path(__file__).with_name("pr-prose-gate.py")
+
+
+def git(repo, *args):
+    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True)
+
+
+@pytest.fixture
+def repo_with_marker(tmp_path):
+    git(tmp_path, "init", "-q", "-b", "main")
+    git(tmp_path, "config", "user.email", "test@example.com")
+    git(tmp_path, "config", "user.name", "test")
+    (tmp_path / "base.txt").write_text("base\n")
+    git(tmp_path, "add", ".")
+    git(tmp_path, "commit", "-q", "-m", "base")
+    git(tmp_path, "update-ref", "refs/remotes/origin/main", "HEAD")
+    (tmp_path / "app.py").write_text('raise ValueError("TODO: Update Prose bad input")\n')
+    git(tmp_path, "add", ".")
+    git(tmp_path, "commit", "-q", "-m", "add marker")
+    return tmp_path
+
+
+def run_hook(cwd, command):
+    event = {"cwd": str(cwd), "tool_input": {"command": command}}
+    return subprocess.run(
+        [sys.executable, str(HOOK)], input=json.dumps(event), capture_output=True, text=True
+    ).returncode
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        'for d in */migrations; do echo "${d%/migrations}"; done',
+        "cat >> notes.md <<'EOF'\nthe model's partition\nEOF",
+        "git commit -m 'update the gh pr template'",
+    ],
+)
+def test_non_pr_commands_pass(repo_with_marker, command):
+    assert run_hook(repo_with_marker, command) == 0
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "gh pr create --draft --title t --body-file body.md",
+        "gh pr ready 12",
+        "cd . && gh pr create --draft",
+    ],
+)
+def test_pr_commands_block_on_marker(repo_with_marker, command):
+    assert run_hook(repo_with_marker, command) == 2
