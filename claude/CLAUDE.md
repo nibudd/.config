@@ -4,14 +4,19 @@
 - When behaviour varies by type, give each type a method rather than writing a `match`/`case` or an `isinstance` chain in a shared function. Where the types share a real contract, make it an abstract base class with an abstract method, not a union type
 - Prefer tests with no/few mocks
 - Prefer parametrized tests when possible
+- Test the logic we wrote, not the framework's. Don't assert that Pydantic or a type annotation rejects bad input; test the mapping, derivation or branching instead, and parametrize over every enum member to guard exhaustiveness
 - Never use typeof for validation in TS/JS; use zod instead
 - Use ALL_CAPS for SQL keywords (`SELECT`, `JOIN`, `ON`, `AND`, …)
 - Secrets follow `~/dev/docs/ADR/ADR-015_standardized_app-based_secret_access.md` and `~/dev/docs/ADR/ADR-019-secret-management-environments.md` — read both before designing anything that touches secrets. Store secrets in Google Secret Manager in the environment-scoped projects `recurve-secrets-production` / `recurve-secrets-staging`, never co-locating environments and never in `oee-secrets` (retiring). Get them to apps as **Terraform-generated env vars** (`env.value_source.secret_key_ref`), not via the Secret Manager client library; only the Terraform/CI service account gets read access, per-secret, and app service accounts get none. Exception: a service that must reload config mid-run may use the library. Neither ADR mandates a bulk migration, but new secrets always go to the new stores and existing ones move when you touch that service — so flag the migration rather than extending the old pattern
 - **Don't read another repo's Terraform state.** A `data "terraform_remote_state"` block pointing at a stack this root module doesn't own buys a value or two at the price of a standing dependency on someone else's state layout, and it hands this repo read access to the whole of that state — routing around the IAM that would otherwise scope what it can see. Pin the value as a literal instead, or read the live resource with an ordinary data source; an apply that fails loudly when the resource is recreated beats a silent cross-stack coupling. Reading a different prefix of state this same repo writes is fine.
+- When a new named resource (topic, bucket, queue) exists in more than one environment and an operator could mistake one for another in a console or log, propose an environment suffix in its name rather than relying on labels. Don't retrofit existing resources unless I ask
+- In a merge, treat two same-named config fields as distinct until each one's comment and call sites show they mean the same thing. After a merge that touches a shared config map, check that every key the code references is still declared
 - When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability. This applies even when the helper is one expression: a function whose other statements talk about sheets and blocks does not also increment a row counter
 - In Python, a leading underscore means private: not referenced outside its module or class. Name a helper that another module imports without one, and don't add underscores to new names by default
+- In Python, always parameterize a `dict` type hint (`dict[str, Any]`, never bare `dict`)
+- Put a builder or converter on a type rather than in a module function, and choose the owner by dependency direction. The destination owns it as a `from_X` classmethod when the source is third-party or more external. The source owns it as a `to_X()` method when the destination is an outbound envelope. Leave it a module function only when no single type owns it
 - **A comment answers a question the code in front of me still raises. It is not a record of how the code came to exist.** Default to none. If prose is needed to explain what something *is* or *does*, rename it or split the function, because a good name is self-maintaining and travels to every call site while a comment does neither. Size whatever survives to the confusion rather than to the effort behind it — a three-line function rarely earns a docstring. Out, however true each one is: the alternative you rejected, the measurement that motivated the change, what the caller guarantees or the callee does, what another module or config sets, and what a later ticket will pick up.
 
   ❌ `NOTIFICATION_PATH = "/notifications-callback"  # path for the notifications callback`
@@ -28,6 +33,7 @@
 - **Flag two kinds of prose at `file:line` and change neither.** Prose your edit made wrong, and prose near where you're working that reads as AI-written. The radius is the same one a refactor gets: what you touch and what sits beside it, never a sweep of the file. I decide what gets rewritten.
 - **Grep a diff for tracker ids before handing it back** and strip every hit out of the code. If removing one loses something real, it goes in the repo's design doc or the worklog.
 - Rationale I asked for goes in the worklog under `## Decisions`, which is where I read it. Putting it in the source doesn't save me a lookup, it puts it somewhere it will quietly go stale.
+- No Claude or Anthropic attribution anywhere — no `Co-Authored-By` trailer, no "Generated with Claude Code" line — on any commit or PR, in any repo, whether or not a skill runs it
 - Don't reformat, re-case, or restyle code whose behaviour you aren't changing — a functional diff should carry no incidental noise. If a cleanup is worth doing, it's its own chunk.
 - Working files I'll want after this session — analysis docs, notes, plans, worklogs, generated reports — go in `~/.claude-work/<key>/`, keyed by the **ticket** I'm working under (`~/.claude-work/PROG-1013/`) so one task keeps one dir even when it spans repos, which mine often do (an API change plus its frontend counterpart). If there's no ticket, the key is `<repo>_<branch>` with any leading dot dropped and any `/` replaced by `_` (`platform` on `PROG-1013/port-metrics` → `platform_PROG-1013_port-metrics`) so keys stay flat. Don't put these files inside a repo — they'd land in a diff — and don't put them under `~/.claude/`, which the harness prunes. `~/.claude-work` is a git repo backed by a private remote and committed and pushed automatically by a Stop hook — write files and move on; never commit or push it yourself. Use the session scratchpad only for genuinely throwaway files, since it gets cleaned up. If something turns out to belong in a repo, move it there and commit it
 
@@ -89,6 +95,7 @@ A few conventions on top of that:
 - **Bold** the load-bearing claim rather than whole sentences, and use *italics* for a term you're introducing or a contrast you're drawing. If more than about one line in five is bold, you're decorating instead of signposting.
 - Lead a line with an emoji only where it carries state (✅ landed, ⚠️ caveat, ❌ failed, 🔍 finding, 🚧 blocked), at most one per line. Use a table when there are more than two dimensions to compare, and add subheadings only once a section is long enough to need them.
 - In a markdown file a paragraph is one line. Never hard-wrap prose to a column, since I reflow with my own formatter and pre-wrapped text fights it. Wrap only where the format requires it, in tables and code blocks.
+- **In a diagram, each colour or line style encodes one attribute, and the legend lists every one.** Tell me the encoding in one line before you draw. Don't add an encoding I can read only by comparing two diagrams
 
 # Simplified Technical English
 
@@ -116,6 +123,7 @@ These rules sit under the section that governs the document, not over it. Where 
 
 - **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
 - **A new ticket is created with an auto-generated subtask.** When I'm creating subtasks on it too, repurpose that one as the first of them — retitle and rewrite it in place — rather than leaving it sitting there and creating a full set alongside it. If I don't need to create subtasks, leave the auto-generated subtask as-is.
+- **Atlassian MCP reads truncate at about five issues**, whatever `maxResults` says, and `fields` does not narrow them. Query 4–6 keys at a time, and list subtasks with `parent = KEY` rather than `parentEpic`. `transitionJiraIssue` rejects an assignee, so assign with `editJiraIssue` first. PROG transition ids: To Do 11, In Progress 21, In Review 31, Done 41, Scrapped 2, On Hold 42
 
 # Jira descriptions and comments
 
@@ -127,7 +135,7 @@ I write both. You gather and summarize, per the moratorium. These rules say what
 
 **In both**, keep the identifiers that survive — ticket keys, file paths, endpoints, table and field names, env var names — and drop the ones that rot: line numbers, commit shas, branch names.
 
-Post my text unchanged once I hand it back. Link every ticket reference as `<site>/browse/<KEY>` rather than leaving a bare key in prose. Use Jira's issue link for a real relationship — blocks, is blocked by, relates to — rather than naming it in the text. When I edit a description, I write the comment that goes with it.
+Post my text unchanged once I hand it back. Link every ticket reference as `<site>/browse/<KEY>` rather than leaving a bare key in prose. Use Jira's issue link for a real relationship — blocks, is blocked by, relates to — rather than naming it in the text. Progress, findings and status changes go in a comment. A description stays the record of what was asked and changes only when the requirements do. When I edit a description, I write the comment that goes with it.
 
 # Collaboration style
 

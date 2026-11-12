@@ -1,5 +1,8 @@
 {
   "model": "opus[1m]",
+  "env": {
+    "MCP_TIMEOUT": "60000"
+  },
   "hooks": {
     "SessionStart": [
       {
