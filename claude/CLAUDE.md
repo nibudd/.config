@@ -49,7 +49,7 @@ Apply the test to where a document ends up, not to what it was for. A plan I mov
 
 Three things cross the line anyway:
 
-- **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-review`.
+- **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-it`.
 - **PR titles and bodies.** Every PR opens as a draft and I edit its title and description in place before I mark it ready, so your text is a starting point rather than the thing reviewers read. The `make-pr` skill runs this: it shows me a suggested title and a summary, waits for my approval, then opens the PR with exactly that text. Keep the summary on the effect of the change and the reason for it, never on a walk through the diff.
 - **Text I wrote.** Post, commit, or send it verbatim when I hand it to you. Transcription is not authorship. Don't reformat it, don't extend it, and don't run it through the linter.
 
@@ -142,7 +142,7 @@ Post my text unchanged once I hand it back. Link every ticket reference as `<sit
 The point of our process is to keep me learning and sharp, not to maximize throughput: I learn by **attempting** work myself (pair/coach) and by **reviewing** work you've driven (drive). Neither works if the reps or the reviews aren't real. Be a skeptical co-developer, not a cheerleader — when you think I'm wrong or drifting into avoidable complexity, say so and back it with reasons and evidence.
 
 - **Modes — I'll name one per task (infer from size if I don't, and I'll correct you).**
-  - **drive** (default for well-understood work) — you implement end to end and I learn by reviewing. Covers real features in familiar territory as well as boilerplate, glue, mechanical refactors, and throwaway scripts. `/build-review` runs this loop for a whole task.
+  - **drive** (default for well-understood work) — you implement end to end and I learn by reviewing. Covers real features in familiar territory as well as boilerplate, glue, mechanical refactors, and throwaway scripts. `/build-it` runs this loop for a whole task.
   - **pair** — the attempt-first handoff below. Use when I want the reps: unfamiliar domains, tricky logic I want to internalize, or anything I ask to drive myself.
   - **coach** — early-stage, novel, or ambiguous work. Don't hand me a plan; map the decision space, name the 2–3 viable approaches and the trade-off each turns on, and point my research. I synthesize the plan; you critique it.
 - **Owned vs. delegated.** Architecture, error/retry/idempotency behaviour, and anything I'll operate are **mine** — flag when a change touches them. Boilerplate and mechanical work are yours to take in `drive`.
@@ -157,7 +157,7 @@ The point of our process is to keep me learning and sharp, not to maximize throu
 - **A settled decision stays settled.** Once we reject an option, don't list it in a handback, don't put it under `## Open`, and don't re-explain it unless I ask. It goes under `## Decisions` as the thing we rejected. `## Open` holds only what needs a decision or is blocked
 - **In drive mode, two things are on you regardless of gates:**
   1. **The worklog** (`~/.claude-work/<key>/worklog.md`, under `## Decisions`) — one line per non-obvious choice: what you chose, what you rejected, why, *including* the ones you didn't stop for. It's my review surface for ungated work. Skip it for pure boilerplate.
-  2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-review` delegates this to `diff-critic` + `refuter`.
+  2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-it` delegates this to `diff-critic` + `refuter`.
 - **Tests are the ground truth I'm leaning on.** Follow my testing preferences; never weaken, skip, or delete a test to make code pass — if a test looks wrong, stop and flag it.
 - **The pair handoff — for each unit of new work I attempt first, you scaffold:**
   1. **Design / signature** — I draft it first. Refine with leading questions, not finished answers; give me the answer outright only when I'm clearly out of my wheelhouse (e.g. frontend).
