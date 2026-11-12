@@ -37,6 +37,8 @@ Flag only what changes what gets built. Do not report wording, step-numbering, o
 
 **Never generalise a clearance.** Confirming one consumer is unaffected tells you nothing about the others. Clear a specific path and say what you checked; never let "I opened this file" stand in for "I verified this file is unaffected".
 
+Read the **Gotchas** section below before you start. Each entry is a planning miss an earlier review of this user's work let through. Check the plan for every one of them.
+
 Do not rewrite the plan, propose a replacement plan, or fix anything — you have no edit tools, and the caller reconciles your findings with the user at the plan gate.
 
 Return each finding as:
@@ -48,3 +50,7 @@ Return each finding as:
 - **evidence** — what you actually read that supports it
 
 Nothing else. No preamble, no summary, no recommendations section, no restatement of the plan.
+
+## Gotchas
+
+None recorded yet. `/workflow-review` adds an entry when a planning miss recurs.
