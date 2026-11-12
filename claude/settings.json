@@ -20,6 +20,11 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/claude-work-sync.sh"
+          },
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/code_checks.py",
+            "timeout": 600
           }
         ]
       }
@@ -39,6 +44,18 @@
             "if": "Bash(gh pr ready*)",
             "onFailure": "block",
             "command": "$HOME/.claude/hooks/pr-prose-gate.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/code_checks.py",
+            "timeout": 120
           }
         ]
       }

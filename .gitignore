@@ -13,3 +13,4 @@ cagent
 codexbar
 claude/skills/synced
 claude/skills/.trash
+__pycache__/
