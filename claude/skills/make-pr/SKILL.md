@@ -91,6 +91,8 @@ refactor: PROG-1013 read filter participants from precomputed metrics
 
 ## Step 4: Draft the summary
 
+**Start from `## PR draft`** if the worklog has that section. Use its title and its bullets as the first draft, and check each bullet against the diff. If you split the work into more than one PR, give each PR the bullets for its commits, write a Why for each PR, and add the stacked line. Apply the rules in Step 3 and in this step to the result.
+
 The summary is the PR body. Keep it short. The reviewer's attention is the scarce resource, and a long description spends it before they reach the diff.
 
 ```markdown
