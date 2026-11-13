@@ -17,20 +17,31 @@ Honor my global CLAUDE.md throughout (functional-core/imperative-shell, simple d
 
 ### 1. Orient
 
-Teach me the code this task touches before anyone proposes a solution. Read it yourself first, then give me a tour:
+Teach me the code this task touches before anyone proposes a solution. I learn the code when I make predictions and check them, not when I read a list of facts. Do not propose an approach, and do not rank options. That framing is mine to make in stage 2. Write each section below to the worklog (format in *Worklog*), so that it survives a context clear.
 
-- the entry points, and the path a request or record takes through the code
-- the data and contracts the change will touch, and **every consumer of them** — search field names, column names, and dict keys, not only type names
+**1a. Get my guess.** State the change that the task requires in one sentence. Then ask me where I think the change lands and what it touches. STOP until I answer. Copy my answer verbatim into `## Guess`.
+
+**1b. Write the tour to `## Map`.** Read the code first. Then write the tour in this order:
+
+1. The *seam*: the one location where the change lands, with `file:line`.
+2. A trace of one concrete example through the code. Use a real request or record with real field values. Give 4 to 7 numbered stops in execution order. For each stop, write:
+   - `file:line`
+   - what the code does to the example at this stop
+   - why the code has this shape. Find the reason in `git log -L`, `git blame`, and the PR that added the code (`gh pr view`). If no source gives the reason, start the text with `inferred:`.
+   - what can go wrong at this stop for this task
+3. A comparison with `## Guess`, in one or two sentences: what my guess got right, and what it got wrong.
+
+Do not put every fact in the trace. The trace holds only what the example passes through.
+
+**1c. Write the inventory to `## Reference`.** Cite `file:line` for each item:
+
+- **every consumer** of the data and contracts that the change touches. Search field names, column names, and dict keys, not only type names.
 - the constraints already in place: invariants, conventions, tests that pin behaviour, and owned paths (see *Risk tier*)
-- anything surprising: dead code, duplicated rules, a test that doesn't test what its name says
+- surprises: dead code, duplicated rules, a test that doesn't test what its name says
 
-Cite `file:line` for every claim so I can open it. Don't propose an approach, and don't rank options — that framing is mine to make in stage 2.
+Add a Mermaid `flowchart` to `## Map` when the trace crosses three or more modules, or when a contract you touch has more than two consumers. Put the diagram above the stops. Label each node with its stop number and name. Draw each consumer from `## Reference` as a branch from the stop that writes the contract. Write one line that states the encoding before the diagram, and give the diagram a legend that lists every colour and line style. Do not draw a diagram when neither condition holds.
 
-Write the tour to the worklog under `## Map` (format below), so it survives a context clear and I can come back to it.
-
-Add a Mermaid `flowchart` to `## Map` when the request path crosses three or more modules, or when a contract you touch has more than two consumers. Put the diagram above the bullets. Write one line that states the encoding before the diagram, and give the diagram a legend that lists every colour and line style. Use node labels that match the `file:line` bullets, so that I can find each node in the list. Do not draw a diagram when neither condition holds.
-
-Open the worklog in my browser with a live preview, so that I can read the tour while I ask questions. Run this command once, in the background, after you write `## Map`:
+Open the worklog in my browser with a live preview, so that I can read the tour while I answer. Run this command once, in the background, after you write `## Map`:
 
 ```
 nohup nvim --headless --listen "${TMPDIR}build-it-<key>.sock" ~/.claude-work/<key>/worklog.md -c "luafile ~/.claude/skills/build-it/preview.lua" >/dev/null 2>&1 &
@@ -38,7 +49,9 @@ nohup nvim --headless --listen "${TMPDIR}build-it-<key>.sock" ~/.claude-work/<ke
 
 The preview reloads each time you write the worklog, until stage 8 stops it. If the socket already exists, a preview for this task is running: do not start a second one. If the command fails, tell me in one line and continue without the preview.
 
-Then STOP. I'll ask questions until I could explain the code myself. Answer them, and add to `## Map` whatever an answer taught me that the tour missed. Move on only when I say I'm oriented.
+**1d. Check my understanding.** Ask me 2 or 3 prediction questions. Each question asks what the code does in a case that the trace did not show. Examples: a null value at a stop, or a consumer that breaks when a field changes its name. Do not give the answers. STOP until I answer.
+
+Check each answer against the code, and cite `file:line`. For each wrong or partial answer, add the missing fact to `## Map` at the stop where it belongs. Then ask one new question about that gap. If I ask questions of my own, answer them and add to `## Map` what the tour missed. Go to stage 2 only when I answer all the open questions correctly.
 
 ### 2. Direct
 
@@ -47,7 +60,7 @@ I write the approach first, in my own words. Wait for it — don't offer a draft
 When I've written it:
 
 1. Copy it verbatim into the worklog under `## Approach`.
-2. Critique it as a skeptical co-developer: where it misses a consumer from the map, where it's over-built, where a materially simpler approach exists, and which decision-gate triggers it hits. Back each point with `file:line` evidence.
+2. Critique it as a skeptical co-developer: where it misses a consumer from `## Reference`, where it's over-built, where a materially simpler approach exists, and which decision-gate triggers it hits. Back each point with `file:line` evidence.
 3. Reconcile with me. If I change the approach, replace `## Approach` with my new text, and record what we rejected under `## Decisions`.
 
 The approach is where I enforce architecture. Don't reinterpret it during planning or implementation. If the code proves it wrong, stop and say so.
@@ -134,8 +147,21 @@ Since the worklog no longer sits inside a repo, `## Repos` is what says where th
 ## Repos
 - <repo path> @ <branch>
 
+## Guess
+<my words, verbatim>
+
 ## Map
-- <what a part of the code does and how it connects> — `file:line`
+Seam: <where the change lands> — `file:line`
+Example: <the request or record the trace follows>
+
+1. <stop name> — `file:line` — <what the code does to the example> — why: <reason, or "inferred: …"> — risk: <what can go wrong for this task>
+
+Guess vs. trace: <what my guess got right and wrong>
+
+## Reference
+- Consumer: <who reads the data or contract> — `file:line`
+- Constraint: <invariant, convention, pinning test, or owned path> — `file:line`
+- Surprise: <dead code, duplicated rule, misleading test> — `file:line`
 
 ## Approach
 <my words, verbatim>
