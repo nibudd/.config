@@ -1,15 +1,15 @@
 ---
 name: make-pr
-description: Plan how the current branch's commits split into PRs. Draft a title and a summary for each PR. Then push the branches and open the PRs as drafts for the user to edit in place.
+description: Plan how the current branch's commits split into PRs. Draft a title and a summary for each PR. Then push the branches and open the PRs as drafts in the browser for the user to edit in place.
 allowed-tools: Bash Read Grep Glob Skill
 disable-model-invocation: true
 ---
 
-Open PRs for the work on the current branch. Plan the split first, draft a title and a summary for each PR, wait for my approval, then push and create them as drafts.
+Open PRs for the work on the current branch. Plan the split first, and draft a title and a summary for each PR. Then push the branches, create the PRs as drafts, and open each one in my browser. I edit them there.
 
 The unit here is a **reviewable PR**, not a commit. One PR usually holds several commits. Commits are the changelog; PRs are the review surface.
 
-**The summary is the body.** What you show me at the gate is what goes up on GitHub. Write it as the description a reviewer reads. Every PR opens as a draft. I edit the title and the description in place before I mark it ready.
+**The summary is the body.** What you draft is what goes up on GitHub. Write it as the description a reviewer reads. Every PR opens as a draft. I edit the title and the description in place before I mark it ready.
 
 Keep it on the **effect of the change and the reason for it**. A reviewer opens the diff tab for the changes themselves. A walk through the files, the commits or the tests is the one thing the body must never be.
 
@@ -32,7 +32,7 @@ Never commit, stage, or stash anything. If there's uncommitted work, say what it
 
 If a PR already exists for this branch, don't open a second one. Draft its title and summary the same way. Ask before you replace what's there.
 
-Flag possible secrets in the diff (`.env`, `credentials.json`, keys, tokens) before drafting, and ask before pushing anything.
+If the diff holds possible secrets (`.env`, `credentials.json`, keys, tokens), list them and STOP. Push nothing until I say so.
 
 **Read the worklog** at `~/.claude-work/<key>/worklog.md` if one exists (key derivation is in my CLAUDE.md). Its `## Decisions` section is the raw material for the *Why* — it's the part the diff can't show. If there's no worklog, get the Why from the commit bodies and our conversation.
 
@@ -91,8 +91,6 @@ refactor: PROG-1013 read filter participants from precomputed metrics
 
 ## Step 4: Draft the summary
 
-**Start from `## PR draft`** if the worklog has that section. Use its title and its bullets as the first draft, and check each bullet against the diff. If you split the work into more than one PR, give each PR the bullets for its commits, write a Why for each PR, and add the stacked line. Apply the rules in Step 3 and in this step to the result.
-
 The summary is the PR body. Keep it short. The reviewer's attention is the scarce resource, and a long description spends it before they reach the diff.
 
 ```markdown
@@ -120,7 +118,7 @@ Never include:
 
 Across the whole set, name once which PR changes production behaviour. Put it in that PR's *Notes* when it isn't obvious from its *What*.
 
-### Simplify before the gate
+### Simplify before you push
 
 Run the drafted titles and bodies through the `asd-ste100` skill in **STE-flavored** mode. A PR body is explanatory prose for a reviewer, so apply the structural rules and drop the one-word-one-meaning lockdown.
 
@@ -130,22 +128,11 @@ Write each body to the scratchpad first and lint it:
 python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <scratchpad>/pr-<n>.md
 ```
 
-Fix every hard violation unless the fix costs a fact, a hedge or a scope qualifier. Keep whatever terms the codebase uses. Show me the simplified body alone — not the draft beside it, and no account of what the pass changed.
+Fix every hard violation unless the fix costs a fact, a hedge or a scope qualifier. Keep whatever terms the codebase uses.
 
-## Step 5: Gate — present and stop
+## Step 5: Execute
 
-Show, compactly:
-
-| # | branch | base | title | commits | ~lines |
-|---|--------|------|-------|---------:|-------:|
-
-Then each drafted body in full, in a fenced block. Then **STOP and wait**.
-
-This is a decision gate: pushing branches and opening PRs is outward-facing and awkward to undo. Push nothing and open nothing until I approve. If I change a title or a body at the gate, use my version verbatim. Don't reformat it, don't extend it, and don't run it through the linter.
-
-## Step 6: Execute
-
-Once I approve, work **bottom-up** through the chain:
+Do not wait for my approval of the titles or the bodies. Work **bottom-up** through the chain:
 
 1. `git push -u origin <branch>` for that group's branch.
 2. Create the PR with `--body-file` pointing at the scratchpad file — cleaner than a heredoc, and it can't be mangled by backticks or `$(...)` in the body:
@@ -159,6 +146,13 @@ All PRs open as **drafts**. I edit the title and the description in place, then 
 
 3. Once every PR exists, do one pass of `gh pr edit <number> --body-file <...>` to fill the real PR numbers into the stacked line. Skip this for a single PR.
 
-Then report the PR URLs, one line each, and record them in the worklog under a `## PRs` section (`- #<n> <title> — <url>`) so they survive a context clear.
+4. Open each PR in my browser with `gh pr view <number> --web`.
+
+Then report the PR URLs as a table:
+
+| # | branch | base | title | commits | ~lines | url |
+|---|--------|------|-------|---------:|-------:|-----|
+
+Record them in the worklog under a `## PRs` section (`- #<n> <title> — <url>`) so they survive a context clear.
 
 If a push is rejected or `gh pr create` fails, stop and show the error. Don't force-push, and don't retry with `--force` or a different branch name without asking.

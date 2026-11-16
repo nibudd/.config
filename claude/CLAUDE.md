@@ -50,7 +50,7 @@ Apply the test to where a document ends up, not to what it was for. A plan I mov
 Three things cross the line anyway:
 
 - **Commit messages.** I edit the squash message heavily at merge, so nothing changes in the `commit` skill or in the commit step inside `build-it`.
-- **PR titles and bodies.** Every PR opens as a draft and I edit its title and description in place before I mark it ready, so your text is a starting point rather than the thing reviewers read. The `make-pr` skill runs this: it shows me a suggested title and a summary, waits for my approval, then opens the PR with exactly that text. Keep the summary on the effect of the change and the reason for it, never on a walk through the diff.
+- **PR titles and bodies.** Every PR opens as a draft and I edit its title and description in place before I mark it ready, so your text is a starting point rather than the thing reviewers read. The `make-pr` skill runs this: it drafts a title and a summary, opens the PR as a draft with that text, and opens it in my browser for me to edit. Keep the summary on the effect of the change and the reason for it, never on a walk through the diff.
 - **Text I wrote.** Post, commit, or send it verbatim when I hand it to you. Transcription is not authorship. Don't reformat it, don't extend it, and don't run it through the linter.
 
 When you would otherwise write the prose:

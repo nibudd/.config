@@ -181,15 +181,6 @@ Guess vs. trace: <what my guess got right and wrong>
 
 ## Misses
 - <defect class review missed> — `file:line` — <which stage should have caught it>
-
-## PR draft
-<title>
-
-# What
-- <effect of the change>
-
-# Why
-<what was broken or missing, or what this unblocks>
 ```
 
 Record a line under `## Misses` whenever a defect gets past a review stage: I overrule a refuted finding, I find a defect the critics didn't raise, or a later stage or the hooks catch one an earlier stage passed. Name it as a class, not as a single line. `/workflow-review` reads these to improve the critics.
@@ -220,7 +211,7 @@ Grep the branch diff for `TODO: Update Prose` first and list every hit with its 
 
 Then run the full suite once. Report failures with the actual output — don't paper over them. Summarize what landed — at Low, followed by the review findings from stage 6 in the gate shape, and wait for my call on them. Leave anything unresolved under Open in the worklog. Open holds only what needs a decision or is blocked. An option we rejected goes under Decisions, never under Open or in the summary.
 
-Then draft the material that I write the PR description from. Use the rules in Step 3 and Step 4 of my `make-pr` skill (`~/.claude/skills/make-pr/SKILL.md`). The draft has a title, `# What` with 3 to 5 bullets, and `# Why` in one or two sentences. Add `# Notes` only when it passes the test in that skill. Omit the stacked line. Each bullet states one effect of the change. A bullet does not name a commit or a test, and it names a file only when that file is the effect. Take the Why from `## Decisions`. Write the draft to the worklog under `## PR draft`, and show it in the summary. Then stop. **Do not push, and do not open a PR** — I review before anything goes upstream.
+Then open the draft PRs. Do this only when two conditions are true: I made my call on every finding, and no `TODO: Update Prose` marker remains in the branch diff. Read my `make-pr` skill (`~/.claude/skills/make-pr/SKILL.md`) and do all of its steps. It pushes the branches, opens each PR as a draft, and opens each PR in my browser. If a condition is false, stop. I run `/make-pr` after I finish.
 
 Stop the worklog preview from stage 1, if it runs: `nvim --server "${TMPDIR}build-it-<key>.sock" --remote-send '<C-\><C-n>:qa!<CR>'`.
 
