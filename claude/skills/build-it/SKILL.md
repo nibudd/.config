@@ -19,6 +19,8 @@ Honor my global CLAUDE.md throughout (functional-core/imperative-shell, simple d
 
 Teach me the code this task touches before anyone proposes a solution. I learn the code when I make predictions and check them, not when I read a list of facts. Do not propose an approach, and do not rank options. That framing is mine to make in stage 2. Write each section below to the worklog (format in *Worklog*), so that it survives a context clear.
 
+**Name the task kind first.** Classify the task as feature, bug, or recovery (see *Task kind*). Write the kind and a one-line reason under `## Kind` in the worklog. Apply the rules for that kind in each stage. If the kind changes during the task, tell me in one line.
+
 **1a. Get my guess.** State the change that the task requires in one sentence. Then ask me where I think the change lands and what it touches. STOP until I answer. Copy my answer verbatim into `## Guess`.
 
 **1b. Write the tour to `## Map`.** Read the code first. Then write the tour in this order:
@@ -67,7 +69,9 @@ The approach is where I enforce architecture. Don't reinterpret it during planni
 
 ### 3. Plan
 
-Break my approach into a dependency-ordered list of small steps. For each: the files it touches, whether it needs tests, a one-line difficulty note, and **whether it hits a decision gate**.
+Break my approach into a dependency-ordered list of small steps. For each: the files it touches, the check that proves it, a one-line difficulty note, and **whether it hits a decision gate**.
+
+**Run each check at baseline.** Before you show me the plan, run each existing check once on the branch, before any change. Write the result next to the step. A check that fails at baseline cannot prove a step. A check that passes but runs no case relevant to the step cannot prove it. If a step needs a new test, write `new test: <name>` and say what it asserts. For a step that changes behaviour, the new test must fail before the change and pass after it. A step that changes no behaviour and has no relevant check gets `check: none` and a one-line reason.
 
 Then critique your own plan: where is this over-built? which steps could be merged or dropped without changing the outcome? Cut what doesn't survive and note what you cut. Scope creep and unnecessary complexity are the failure modes I care most about — don't wait for me to ask.
 
@@ -117,6 +121,30 @@ What each tier changes:
 | Review gate | folded into the wrap | its own stop | its own stop |
 | Steps on owned paths | — | — | each one is a decision gate |
 
+### Task kind
+
+The kind changes what each stage must find and prove.
+
+**Feature** — new or changed behaviour in existing code.
+
+- Orient: find the analogous implementations and the conventions the code already uses. Put them in `## Reference`.
+- A mechanism is not a requirement. A status column, a timestamp, or a new table is a choice for `## Approach`, not a fact of the task.
+
+**Bug** — the code does not do what it should.
+
+- Orient: write the expected behaviour, the actual behaviour, and the conditions that reproduce it, before the trace. Ask me for the expected behaviour only if the code, the tests, and the ticket cannot show it.
+- Do not change a live system to get evidence. Logs from a different request or release are not evidence for this one.
+- If the cause is not proven, the first plan step is an investigation: the question, 2 or 3 hypotheses, the experiment that tells them apart, and the stop condition. The fix steps come after it. The investigation ends when each hypothesis has a result. A fix is not its end condition.
+- The fix needs a regression test that fails before the fix and passes after it. If no automated test is possible, write the manual procedure and the result you expect to see.
+
+**Recovery** — the branch or working tree already holds unfinished work.
+
+- Before any edit, record the starting state in `## Reference`: branch and base, tracked diff, untracked files, and the checks that pass and fail now.
+- Do not stash, reset, discard, or rewrite work to get a clean baseline. Keep edits that are not part of the task.
+- Orient: classify each part of the existing work as working, incomplete, incorrect, or uncertain, with evidence. A style you do not know is not evidence that the code is incorrect.
+- Do not blame the unfinished work for a check that already failed at its base. Check the base first.
+- Plan: say for each part whether we keep, fix, replace, or finish it. Add checks for the behaviour we keep, not only for new behaviour. A new green test does not cancel a failure in behaviour we keep.
+
 ### 4. Implement, verify, and commit — per step
 
 For each step in order:
@@ -147,6 +175,9 @@ Since the worklog no longer sits inside a repo, `## Repos` is what says where th
 ## Repos
 - <repo path> @ <branch>
 
+## Kind
+<feature | bug | recovery> — <reason>
+
 ## Guess
 <my words, verbatim>
 
@@ -170,8 +201,8 @@ Guess vs. trace: <what my guess got right and wrong>
 <Low | Standard | High> — <reason>
 
 ## Steps
-- [x] 1. <step> — <commit sha>
-- [ ] 2. <step>
+- [x] 1. <step> — check: <command | new test: name | none> (baseline: <pass | fail | new>) — <commit sha>
+- [ ] 2. <step> — check: <command | new test: name | none> (baseline: <pass | fail | new>)
 
 ## Decisions
 - <what was chosen> — rejected: <alternative> (<why>)
