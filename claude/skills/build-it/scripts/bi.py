@@ -19,7 +19,7 @@ from workflow import Brief, Decisions, Plan, Review, State, TaskFile, Transition
 
 HERE = Path(__file__).resolve().parent
 TEMPLATES = HERE.parent / "templates"
-HOOKS = Path.home() / ".claude" / "hooks"
+HOOKS = HERE.parents[2] / "hooks"
 
 
 def work_root() -> Path:

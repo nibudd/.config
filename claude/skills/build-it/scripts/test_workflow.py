@@ -12,6 +12,7 @@ import workflow
 from workflow import Brief, Decisions, Plan, Review, State, TransitionError
 
 BI = Path(__file__).resolve().parent / "bi.py"
+CLAUDE_DIR = BI.parents[3]
 
 BRIEF = """# Task
 
@@ -69,7 +70,7 @@ def test_next_id(existing, prefix, expected):
     ],
 )
 def test_tier_floor(paths, expected):
-    sys.path.insert(0, str(Path.home() / ".claude" / "hooks"))
+    sys.path.insert(0, str(CLAUDE_DIR / "hooks"))
     from code_checks import glob_match
 
     assert workflow.tier_floor(paths, workflow.DEFAULT_OWNED_PATHS, glob_match) == expected
@@ -222,6 +223,7 @@ def test_decision_problems(decisions, expected):
         ([step(check={"kind": "new_test", "name": "t"})], []),
         ([step(baseline="green")], ["plan.yaml: step 1 has baseline 'green'"]),
         ([step(1), step(1)], ["plan.yaml step: duplicate 1"]),
+        ([step("2a")], ["plan.yaml: step 2a has a step number that is not an integer"]),
     ],
 )
 def test_plan_problems(steps, expected):
@@ -370,7 +372,7 @@ def test_exit_problems(state, guard, files, expected):
     assert workflow.exit_problems(files, state, guard) == expected
 
 
-AGENTS = Path.home() / ".claude" / "agents"
+AGENTS = CLAUDE_DIR / "agents"
 GUARD_BULLET = re.compile(r"^\s*- `(\w+)`")
 
 
@@ -479,6 +481,7 @@ def test_first_todo_step(steps, expected):
         ({"state": "implement", "step": 2}, "done", [step(1, status="done", commit="a"), step(2)], ["plan.yaml: step 2 is not marked done; set its status and commit"]),
         ({"state": "implement", "step": 1}, "gate", [step(1)], []),
         ({"state": "implement", "step": None}, "done", [step(1)], []),
+        ({"state": "implement", "step": 3}, "done", [step(1, status="done", commit="a")], ["plan.yaml: step 3 is missing; restore it or ask the user"]),
     ],
 )
 def test_implement_needs_its_step_done(state, guard, steps, expected):
@@ -517,3 +520,11 @@ def test_cli_tracks_the_implement_step(tmp_path, repo):
     (task / "plan.yaml").write_text(yaml.safe_dump({"steps": [step(1, status="done", commit="a1"), step(2, status="done", commit="b2")]}))
     finished = json.loads(bi(work, "transition", key, "finished").stdout)
     assert (finished["guard"], finished["state"], finished["step"]) == ("done", "review", None)
+
+
+def test_claude_dir_is_the_repo_copy():
+    assert (CLAUDE_DIR / "agents").is_dir() and (CLAUDE_DIR / "hooks" / "code_checks.py").is_file()
+
+
+def test_first_todo_step_ignores_non_integer_numbers():
+    assert workflow.first_todo_step([Plan({"steps": [step("2a"), step(3)]})]) == 3

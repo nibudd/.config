@@ -10,7 +10,7 @@ The dispatcher gives you:
 - `state`: the state you run in. One agent can serve more than one state.
 - `return_to`: the state the task goes back to after your state, or `null`. It is the last entry of `return_stack` in `state.yaml`.
 - `kind` and `tier`, when they are set.
-- Other values that your agent definition names, for example a step number or critic models.
+- Other values that your agent definition names, for example a mode or critic models.
 
 ## Files and IDs
 

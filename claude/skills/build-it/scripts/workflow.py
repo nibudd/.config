@@ -273,6 +273,8 @@ class Plan(TaskFile):
         found = duplicates("plan.yaml step", [s.get("n") for s in steps])
         for s in steps:
             name = f"plan.yaml: step {s.get('n')}"
+            if type(s.get("n")) is not int:
+                found.append(f"{name} has a step number that is not an integer")
             cited = s.get("acceptance", [])
             if not cited and not s.get("acceptance_none"):
                 found.append(f"{name} cites no acceptance ID and gives no acceptance_none reason")
@@ -295,12 +297,15 @@ class Plan(TaskFile):
         return found
 
     def todo_steps(self) -> list[int]:
-        return [s.get("n") for s in self.data.get("steps") or [] if s.get("status", "todo") == "todo"]
+        steps = self.data.get("steps") or []
+        return [s["n"] for s in steps if type(s.get("n")) is int and s.get("status", "todo") == "todo"]
 
     def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
         if state.get("state") != "implement" or guard not in ("next_step", "done") or state.get("step") is None:
             return []
-        step = next((s for s in self.data.get("steps") or [] if s.get("n") == state["step"]), {})
+        step = next((s for s in self.data.get("steps") or [] if s.get("n") == state["step"]), None)
+        if step is None:
+            return [f"plan.yaml: step {state['step']} is missing; restore it or ask the user"]
         if step.get("status") != "done":
             return [f"plan.yaml: step {state['step']} is not marked done; set its status and commit"]
         return []
