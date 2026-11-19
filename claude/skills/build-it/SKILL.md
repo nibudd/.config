@@ -19,7 +19,7 @@ Honor my global CLAUDE.md throughout (functional-core/imperative-shell, simple d
 
 Teach me the code this task touches before anyone proposes a solution. I learn the code when I make predictions and check them, not when I read a list of facts. Do not propose an approach, and do not rank options. That framing is mine to make in stage 2. Write each section below to the worklog (format in *Worklog*), so that it survives a context clear.
 
-**Name the task kind first.** Classify the task as feature, bug, or recovery (see *Task kind*). Write the kind and a one-line reason under `## Kind` in the worklog. Apply the rules for that kind in each stage. If the kind changes during the task, tell me in one line.
+**Name the task kind first.** Classify the task as feature, bug, recovery, or foundation (see *Task kind*). Write the kind and a one-line reason under `## Kind` in the worklog. Apply the rules for that kind in each stage. If the kind changes during the task, tell me in one line.
 
 **1a. Get my guess.** State the change that the task requires in one sentence. Then ask me where I think the change lands and what it touches. STOP until I answer. Copy my answer verbatim into `## Guess`.
 
@@ -145,6 +145,14 @@ The kind changes what each stage must find and prove.
 - Do not blame the unfinished work for a check that already failed at its base. Check the base first.
 - Plan: say for each part whether we keep, fix, replace, or finish it. Add checks for the behaviour we keep, not only for new behaviour. A new green test does not cancel a failure in behaviour we keep.
 
+**Foundation** — a new project, or a new service inside a repo, with no code to trace yet.
+
+- Orient: there is no trace. In `## Map`, write the constraints instead: the runtime, where it deploys, who operates it, and the existing systems it must read from or write to. For each constraint, write the choice it forces or rules out. In `## Reference`, list the existing assets to reuse: templates, sibling services, shared libraries. The prediction questions in 1d ask what a constraint forces, not what the code does.
+- A whole product is not one task. Cut the task to the smallest capability that runs end to end, from its entry point to its output. Put the other capabilities under `## Open`.
+- Investigate only the tool choices that are expensive to change: language, framework, datastore, deployment target. Each one is a decision gate. For each one, say what it costs to deploy, to maintain, and to migrate away from.
+- Checks: a step may name a check that it creates, as `check: planned: <command>`. The step must create the check and run it before the step ends. No later step can depend on that check until then.
+- A skeleton that runs is not a finished product. The wrap says which capabilities are still under `## Open`.
+
 ### 4. Implement, verify, and commit — per step
 
 For each step in order:
@@ -176,7 +184,7 @@ Since the worklog no longer sits inside a repo, `## Repos` is what says where th
 - <repo path> @ <branch>
 
 ## Kind
-<feature | bug | recovery> — <reason>
+<feature | bug | recovery | foundation> — <reason>
 
 ## Guess
 <my words, verbatim>
@@ -201,8 +209,8 @@ Guess vs. trace: <what my guess got right and wrong>
 <Low | Standard | High> — <reason>
 
 ## Steps
-- [x] 1. <step> — check: <command | new test: name | none> (baseline: <pass | fail | new>) — <commit sha>
-- [ ] 2. <step> — check: <command | new test: name | none> (baseline: <pass | fail | new>)
+- [x] 1. <step> — check: <command | new test: name | planned: command | none> (baseline: <pass | fail | new | planned>) — <commit sha>
+- [ ] 2. <step> — check: <command | new test: name | planned: command | none> (baseline: <pass | fail | new | planned>)
 
 ## Decisions
 - <what was chosen> — rejected: <alternative> (<why>)
