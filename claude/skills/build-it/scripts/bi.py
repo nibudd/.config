@@ -31,7 +31,12 @@ def task_dir(key: str) -> Path:
 
 
 def read_yaml(path: Path, default: Any) -> Any:
-    return yaml.safe_load(path.read_text()) or default if path.exists() else default
+    if not path.exists():
+        return default
+    try:
+        return yaml.safe_load(path.read_text()) or default
+    except yaml.YAMLError as error:
+        raise SystemExit(f"{path} is not valid YAML. Rewrite the whole file as valid YAML.\n{error}") from None
 
 
 def write_yaml(path: Path, data: Any) -> None:
@@ -58,8 +63,14 @@ def git(repo: Path, *args: str) -> str:
 def cmd_init(args: argparse.Namespace) -> int:
     repo = Path(git(Path(args.repo), "rev-parse", "--show-toplevel"))
     branch = git(repo, "branch", "--show-current")
+    if not args.ticket and not branch:
+        print("HEAD is detached, so no branch names the task. Check out a branch or pass --ticket.", file=sys.stderr)
+        return 1
     key = workflow.derive_key(args.ticket, repo.name, branch)
     directory = task_dir(key)
+    if (directory / "worklog.md").exists():
+        print(f"{directory} holds an old task with a worklog.md. Use /build-it-v1 for it.", file=sys.stderr)
+        return 1
     if read_yaml(directory / "state.yaml", {}).get("state"):
         print(f"{directory} already holds a task; resume it instead", file=sys.stderr)
         return 1
@@ -91,11 +102,15 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 def cmd_transition(args: argparse.Namespace) -> int:
     directory = task_dir(args.key)
-    problems = workflow.validate(load(directory))
+    state = read_yaml(directory / "state.yaml", {})
+    if not state.get("state"):
+        print(f"{directory}/state.yaml has no state. Run `bi.py init` first.", file=sys.stderr)
+        return 1
+    files = load(directory, state)
+    problems = workflow.validate(files) + workflow.exit_problems(files, state, args.guard)
     if problems:
         print("Fix these before the transition:\n" + "\n".join(problems), file=sys.stderr)
         return 1
-    state = read_yaml(directory / "state.yaml", {})
     try:
         result = workflow.transition(state, args.guard)
     except TransitionError as error:
@@ -103,7 +118,7 @@ def cmd_transition(args: argparse.Namespace) -> int:
         return 1
     write_yaml(directory / "state.yaml", result.state)
     new = result.state
-    print(json.dumps({"state": new["state"], "return_to": new.get("return_to"), "summarize": result.summarize}))
+    print(json.dumps({"state": new["state"], "return_to": workflow.return_to(new), "summarize": result.summarize}))
     return 0
 
 
@@ -128,7 +143,7 @@ def cmd_baseline(args: argparse.Namespace) -> int:
     path = task_dir(args.key) / "plan.yaml"
     plan = read_yaml(path, {})
     results = {}
-    for step in plan.get("steps", []):
+    for step in plan.get("steps") or []:
         check = step.get("check", {})
         if check.get("kind") == "command":
             cwd = Path(os.path.expanduser(check.get("cwd", ".")))
@@ -150,7 +165,7 @@ def cmd_tier_floor(args: argparse.Namespace) -> int:
         profile = Path(repo["path"]) / ".claude" / "repo-profile.local.json"
         if profile.exists():
             owned += json.loads(profile.read_text()).get("owned_paths", [])
-    paths = [f for s in read_yaml(directory / "plan.yaml", {}).get("steps", []) for f in s.get("files", [])]
+    paths = [f for s in read_yaml(directory / "plan.yaml", {}).get("steps") or [] for f in s.get("files", [])]
     print(workflow.tier_floor(paths, owned, glob_match))
     return 0
 

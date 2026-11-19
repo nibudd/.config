@@ -19,22 +19,22 @@ Tools:
 ## 1. Find or start the task
 
 1. Derive the key from my CLAUDE.md rule: the ticket if I name one, else `<repo>_<branch>`.
-2. If `~/.claude-work/<key>/state.yaml` exists and its `state` is set, resume the task from that state. Tell me the state in one line.
-3. If it does not exist, run `$BI init --repo . [--ticket <KEY>]`. It prints the key and creates the task files from the templates.
-4. If the task touches more than one repo, tell me. The `repos` list in `state.yaml` is the record of every repo and branch.
-
-A task with a `worklog.md` and no `state.yaml` is an old task. Tell me to use `/build-it-v1` for it, and stop.
+2. If `~/.claude-work/<key>/worklog.md` exists, it is an old task. Tell me to use `/build-it-v1` for it, and stop.
+3. If `~/.claude-work/<key>/state.yaml` exists and its `state` is set, resume the task from that state. Tell me the state in one line.
+4. Otherwise, run `$BI init --repo . [--ticket <KEY>]`. It prints the key and creates the task files from the templates.
+5. If the task touches more than one repo, tell me. The `repos` list in `state.yaml` is the record of every repo and branch.
 
 ## 2. The loop
 
 Repeat until the state is `done`:
 
 1. Read `state.yaml`. If `waiting_on` is set, tell me which question the task waits on, and stop. When the answer arrives, I clear it with `$BI set <key> waiting_on null` and resume with `/build-it <key>`.
-2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to`, `kind`, `tier`, and the extra values in the table. Give it my task text only in the Requirements state.
+2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to` (the last entry of `return_stack`, or null), `kind`, `tier`, and the extra values in the table. Give it my task text only in the Requirements state.
 3. Read the agent's final output.
    - If it starts with `ASK`, show me the text after the `ASK` line verbatim, with nothing added, and end your turn. When I reply, send my reply verbatim to the same agent with `SendMessage`. Then repeat step 3 with its next output.
+   - If it starts with `WAIT Q<n>`, tell me which question the task waits on and who must answer it, and stop.
    - If it starts with `DONE <guard>`, run `$BI transition <key> <guard>`. Post one line: the old state, the guard, the new state, and the agent's summary in one sentence.
-4. If `transition` fails, show me its error and stop. Do not edit task files to make it pass.
+4. If `transition` fails, send its error to the same agent with `SendMessage` once, and ask it to fix the files or choose another guard. If it fails again, show me the error and stop. Do not edit task files yourself.
 5. If `transition` returns `"summarize": true`, five steps passed with no gate. Post a summary of those five steps from the agents' summaries, and wait for me. Then run `$BI transition <key> summarized` and continue.
 
 | State | Agent | Extra values |
@@ -43,7 +43,7 @@ Repeat until the state is `done`:
 | orient | `bi-orient` | — |
 | design | `bi-interview` | — |
 | direct | `bi-direct` | — |
-| plan | `bi-plan` | `critic_models` |
+| plan | `bi-plan` | `critic_models` with two models |
 | implement | `bi-implement` | `mode: step` |
 | review | `bi-review` | `round: 1`, `critic_models` |
 | fix | `bi-implement`, then `bi-review` | `mode: fix`. Then `round: 2`, the fix commit range from the implement summary, `critic_models` |
@@ -55,7 +55,7 @@ In the Fix state, `bi-implement` finishes with `DONE done`. Do not run a transit
 
 ## 3. Critic models
 
-`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. At Standard, give one model. At High, give two different models. Tell me which model you run on and which models the critics run on, once per task.
+`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. Tell me which model you run on and which models the critics run on, once per task.
 
 ## 4. Preview
 

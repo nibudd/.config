@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -21,6 +22,7 @@ BRIEF = """# Task
 ## Open questions
 - Q01 [open]: should deleted rows export?
 - Q02 [resolved]: which bucket?
+- Q03 [accepted]: nightly means 02:00 UTC
 """
 
 
@@ -75,35 +77,53 @@ def test_tier_floor(paths, expected):
 
 @pytest.mark.parametrize(("source", "guard"), list(workflow.TRANSITIONS))
 def test_every_transition_lands_in_a_known_state(source, guard):
-    state = {"state": source, "return_to": "design", "tier": "low", "steps_since_gate": 0}
+    state = {"state": source, "return_stack": ["design"], "tier": "low", "steps_since_gate": 0}
     result = workflow.transition(state, guard)
     assert result.state["state"] in workflow.STATES
     assert result.state["log"][-1] == {"from": source, "guard": guard, "to": result.state["state"]}
 
 
 @pytest.mark.parametrize(
-    ("source", "guard", "return_to", "expected_state", "expected_return_to"),
+    ("source", "guard", "stack", "expected_state", "expected_stack"),
     [
-        ("design", "new_criterion", None, "requirements", "design"),
-        ("requirements", "return", "design", "design", None),
-        ("design", "gap", None, "orient", "design"),
-        ("orient", "return", "design", "design", None),
-        ("implement", "gate", None, "design", "implement"),
-        ("design", "return", "implement", "implement", None),
-        ("design", "approach_changed", "implement", "direct", "implement"),
-        ("requirements", "ready", None, "orient", None),
+        ("design", "new_criterion", [], "requirements", ["design"]),
+        ("requirements", "return", ["design"], "design", []),
+        ("design", "gap", [], "orient", ["design"]),
+        ("orient", "return", ["design"], "design", []),
+        ("implement", "gate", [], "design", ["implement"]),
+        ("design", "return", ["implement"], "implement", []),
+        ("design", "new_criterion", ["implement"], "requirements", ["implement", "design"]),
+        ("requirements", "return", ["implement", "design"], "design", ["implement"]),
+        ("design", "gap", ["implement"], "orient", ["implement", "design"]),
+        ("design", "approach_changed", ["implement"], "direct", []),
+        ("direct", "new_decision", [], "design", []),
+        ("requirements", "ready", [], "orient", []),
     ],
 )
-def test_return_to(source, guard, return_to, expected_state, expected_return_to):
-    result = workflow.transition({"state": source, "return_to": return_to}, guard)
-    assert (result.state["state"], result.state["return_to"]) == (expected_state, expected_return_to)
+def test_return_stack(source, guard, stack, expected_state, expected_stack):
+    result = workflow.transition({"state": source, "return_stack": stack}, guard)
+    assert (result.state["state"], result.state["return_stack"]) == (expected_state, expected_stack)
+
+
+def test_nested_return_comes_back_to_implement():
+    path = [("implement", "gate"), ("design", "new_criterion"), ("requirements", "return"), ("design", "return")]
+    state = {"state": "implement", "return_stack": []}
+    for source, guard in path:
+        assert state["state"] == source
+        state = workflow.transition(state, guard).state
+    assert (state["state"], state["return_stack"]) == ("implement", [])
+
+
+@pytest.mark.parametrize(("stack", "expected"), [([], None), (["implement"], "implement"), (["implement", "design"], "design")])
+def test_return_to_is_the_top_of_the_stack(stack, expected):
+    assert workflow.return_to({"return_stack": stack}) == expected
 
 
 @pytest.mark.parametrize(
     ("state", "guard", "message"),
     [
         ({"state": "orient"}, "approved", "no guard 'approved' from 'orient'"),
-        ({"state": "requirements", "return_to": None}, "return", "needs return_to set"),
+        ({"state": "requirements", "return_stack": []}, "return", "needs a non-empty return_stack"),
         ({"state": "review", "tier": "standard"}, "carried", "only at the low tier"),
         ({"state": "done"}, "next_step", "no guard"),
     ],
@@ -144,8 +164,8 @@ def test_record_baseline():
 
 def test_brief_ids():
     brief = Brief(BRIEF)
-    assert brief.defined_ids() == {"A01", "A02", "Q01", "Q02"}
-    assert brief.questions() == {"Q01": "open", "Q02": "resolved"}
+    assert brief.defined_ids() == {"A01", "A02", "Q01", "Q02", "Q03"}
+    assert brief.questions() == {"Q01": "open", "Q02": "resolved", "Q03": "accepted"}
 
 
 @pytest.mark.parametrize(
@@ -172,7 +192,9 @@ def test_every_decision_status_may_serve_a_criterion(status):
     [
         ([{"id": "D01", "status": "proposed", "serves": ["Q01"]}], []),
         ([{"id": "D01", "status": "delegated", "serves": ["Q01"]}], []),
-        ([{"id": "D01", "status": "agreed", "serves": ["Q01"]}], ["decisions.yaml: D01 is agreed but serves unconfirmed Q01"]),
+        ([{"id": "D01", "status": "agreed", "serves": ["Q01"]}], ["decisions.yaml: D01 is agreed but serves open question Q01"]),
+        ([{"id": "D01", "status": "agreed", "serves": ["Q02"]}], []),
+        ([{"id": "D01", "status": "agreed", "serves": ["Q03"]}], []),
         ([{"id": "D01", "status": "agreed", "serves": ["A09"]}], ["decisions.yaml: D01 serves unknown A09"]),
         ([{"id": "D01", "status": "owner", "serves": []}], ["decisions.yaml: D01 has status 'owner'"]),
         ([{"id": "D01", "status": "agreed"}, {"id": "D01", "status": "agreed"}], ["decisions.yaml: duplicate D01"]),
@@ -190,7 +212,8 @@ def test_decision_problems(decisions, expected):
         ([step(acceptance=[], acceptance_none="pure rename")], []),
         ([step(acceptance=[])], ["plan.yaml: step 1 cites no acceptance ID and gives no acceptance_none reason"]),
         ([step(acceptance=["A09"])], ["plan.yaml: step 1 cites unknown A09"]),
-        ([step(acceptance=["Q01"])], ["plan.yaml: step 1 cites unknown Q01"]),
+        ([step(acceptance=["Q01"])], ["plan.yaml: step 1 cites open question Q01"]),
+        ([step(acceptance=["Q02"])], []),
         ([step(decisions=["D01"])], ["plan.yaml: step 1 cites unknown D01"]),
         ([step(check={"kind": "maybe"})], ["plan.yaml: step 1 has check kind 'maybe'"]),
         ([step(check={"kind": "command"})], ["plan.yaml: step 1 has a command check with no run command"]),
@@ -216,7 +239,7 @@ def test_review_duplicate_findings():
         ({"state": "plan", "kind": "bug", "tier": "high"}, []),
         ({"state": "intake"}, ["state.yaml: state is 'intake'"]),
         ({"state": None, "prs": [{"number": 12}]}, []),
-        ({"state": "plan", "return_to": "nowhere"}, ["state.yaml: return_to is 'nowhere'"]),
+        ({"state": "plan", "return_stack": ["implement", "nowhere"]}, ["state.yaml: return_stack holds 'nowhere'"]),
         ({"state": "plan", "kind": "chore"}, ["state.yaml: kind is 'chore'"]),
         ({"state": "plan", "tier": "medium"}, ["state.yaml: tier is 'medium'"]),
         ({"state": "design", "waiting_on": "Q01"}, []),
@@ -260,15 +283,19 @@ def test_cli_round_trip(tmp_path, repo):
     (task / "brief.md").write_text(BRIEF)
     assert bi(work, "next-id", key, "A").stdout.strip() == "A03"
 
+    open_question = bi(work, "transition", key, "ready")
+    assert open_question.returncode == 1 and "Q01 is still open" in open_question.stderr
+    (task / "brief.md").write_text(BRIEF.replace("Q01 [open]", "Q01 [resolved]"))
     moved = bi(work, "transition", key, "ready")
-    assert json.loads(moved.stdout)["state"] == "orient"
+    assert json.loads(moved.stdout) == {"state": "orient", "return_to": None, "summarize": False}
+    (task / "brief.md").write_text(BRIEF)
     state = yaml.safe_load((task / "state.yaml").read_text())
     assert state["repos"] == [{"path": str(repo.resolve()), "branch": "PROG-1013/port-metrics"}]
 
     (task / "decisions.yaml").write_text(yaml.safe_dump([{"id": "D01", "status": "agreed", "serves": ["Q01"]}]))
     blocked = bi(work, "transition", key, "understood")
     assert blocked.returncode == 1
-    assert "D01 is agreed but serves unconfirmed Q01" in blocked.stderr
+    assert "D01 is agreed but serves open question Q01" in blocked.stderr
 
     assert bi(work, "init", "--repo", str(repo)).returncode == 1
 
@@ -323,3 +350,80 @@ def test_cli_init_adopts_a_state_file_without_a_state(tmp_path, repo):
     assert bi(work, "init", "--repo", str(repo)).returncode == 0
     state = yaml.safe_load((task / "state.yaml").read_text())
     assert (state["state"], state["prs"]) == ("requirements", [{"number": 7}])
+
+
+@pytest.mark.parametrize(
+    ("state", "guard", "files", "expected"),
+    [
+        ({"state": "requirements"}, "ready", [Brief(BRIEF)], ["brief.md: Q01 is still open"]),
+        ({"state": "requirements"}, "ready", [Brief(BRIEF.replace("Q01 [open]", "Q01 [resolved]"))], []),
+        ({"state": "requirements", "return_stack": ["design"]}, "return", [Brief(BRIEF)], []),
+        ({"state": "design"}, "decided", [Decisions([{"id": "D01", "status": "proposed"}])], ["decisions.yaml: D01 is still proposed"]),
+        ({"state": "design", "return_stack": ["implement"]}, "return", [Decisions([{"id": "D01", "status": "proposed"}])], ["decisions.yaml: D01 is still proposed"]),
+        ({"state": "design"}, "decided", [Decisions([{"id": "D01", "status": "agreed"}, {"id": "D02", "status": "delegated"}])], []),
+        ({"state": "design"}, "gap", [Decisions([{"id": "D01", "status": "proposed"}])], []),
+        ({"state": "design", "return_stack": ["implement"]}, "decided", [State({})], ["state.yaml: return_stack is not empty; use 'return' to go back to implement"]),
+        ({"state": "plan"}, "approved", [Brief(BRIEF), Decisions([{"id": "D01", "status": "proposed"}])], []),
+    ],
+)
+def test_exit_problems(state, guard, files, expected):
+    assert workflow.exit_problems(files, state, guard) == expected
+
+
+AGENTS = Path.home() / ".claude" / "agents"
+GUARD_BULLET = re.compile(r"^\s*- `(\w+)`")
+
+
+def agent_guards() -> set[str]:
+    guards = set()
+    for path in AGENTS.glob("bi-*.md"):
+        in_guards = False
+        for line in path.read_text().splitlines():
+            if re.match(r"^\s*-?\s*Guards?:", line):
+                in_guards = True
+                guards.update(re.findall(r"`(\w+)`", line.split(":", 1)[1]))
+                continue
+            if in_guards and (m := GUARD_BULLET.match(line)):
+                guards.add(m.group(1))
+            elif in_guards and line.strip() and not line.startswith(" "):
+                in_guards = False
+    return guards
+
+
+def test_agent_guards_match_the_transition_table():
+    table = {g for _, g in workflow.TRANSITIONS}
+    dispatcher_only = {"summarized"}
+    assert agent_guards() == table - dispatcher_only
+
+
+@pytest.mark.parametrize("name", ["decisions.yaml", "plan.yaml", "review.yaml", "state.yaml"])
+def test_templates_parse(name):
+    yaml.safe_load((BI.parent.parent / "templates" / name).read_text())
+
+
+def test_cli_rejects_old_task_and_detached_head(tmp_path, repo):
+    work = tmp_path / "work"
+    old = work / "platform_PROG-1013_port-metrics"
+    old.mkdir(parents=True)
+    (old / "worklog.md").write_text("# old")
+    refused = bi(work, "init", "--repo", str(repo))
+    assert refused.returncode == 1 and "build-it-v1" in refused.stderr
+
+    (repo / "f").write_text("x")
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@e", "commit", "-qm", "c", "--allow-empty"], check=True)
+    subprocess.run(["git", "-C", str(repo), "checkout", "-q", "--detach"], check=True)
+    detached = bi(work, "init", "--repo", str(repo))
+    assert detached.returncode == 1 and "detached" in detached.stderr
+
+
+def test_cli_transition_without_a_task(tmp_path):
+    result = bi(tmp_path, "transition", "nothing-here", "ready")
+    assert result.returncode == 1 and "bi.py init" in result.stderr
+
+
+def test_cli_reports_invalid_yaml(tmp_path, repo):
+    work = tmp_path / "work"
+    key = json.loads(bi(work, "init", "--repo", str(repo)).stdout)["key"]
+    (work / key / "decisions.yaml").write_text("[]\n- id: D01\n")
+    result = bi(work, "validate", key)
+    assert result.returncode == 1 and "decisions.yaml is not valid YAML" in result.stderr

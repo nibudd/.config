@@ -11,4 +11,4 @@
 #   gate: false
 #   status: todo
 #   commit: null
-steps: []
+# Write the steps as a list under a top-level `steps:` key.

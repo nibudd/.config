@@ -9,4 +9,4 @@
 #       refuted: false
 #       refutation: null
 #       call: null   # fix | skip, the user's call
-rounds: []
+# Write the rounds as a list under a top-level `rounds:` key.

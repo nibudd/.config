@@ -25,9 +25,9 @@ BASELINES = ("pass", "fail", "new", "planned")
 STEPS_BEFORE_SUMMARY = 5
 SETTABLE = {"kind": KINDS, "tier": TIERS, "waiting_on": None}
 
-RETURN = "<return_to>"
+RETURN = "<return>"
 
-# (state, guard) -> (next state, return_to to set on the way in)
+# (state, guard) -> (next state, state to push on the return stack on the way in)
 TRANSITIONS: dict[tuple[str, str], tuple[str, str | None]] = {
     ("requirements", "ready"): ("orient", None),
     ("requirements", "return"): (RETURN, None),
@@ -105,24 +105,30 @@ class Transition:
     summarize: bool
 
 
+def return_to(state: dict[str, Any]) -> str | None:
+    stack = state.get("return_stack") or []
+    return stack[-1] if stack else None
+
+
 def transition(state: dict[str, Any], guard: str) -> Transition:
     current = state["state"]
     try:
-        target, return_to = TRANSITIONS[(current, guard)]
+        target, push = TRANSITIONS[(current, guard)]
     except KeyError:
         allowed = sorted(g for s, g in TRANSITIONS if s == current)
         raise TransitionError(f"no guard {guard!r} from {current!r}; allowed: {', '.join(allowed)}") from None
     if guard == "carried" and state.get("tier") != "low":
         raise TransitionError("findings are carried to the wrap only at the low tier")
-    new = dict(state)
+    stack = list(state.get("return_stack") or [])
     if target == RETURN:
-        if not state.get("return_to"):
-            raise TransitionError(f"guard 'return' from {current!r} needs return_to set")
-        target = state["return_to"]
-        new["return_to"] = None
-    elif return_to:
-        new["return_to"] = return_to
-    new["state"] = target
+        if not stack:
+            raise TransitionError(f"guard 'return' from {current!r} needs a non-empty return_stack")
+        target = stack.pop()
+    elif push:
+        stack.append(push)
+    if guard == "approach_changed":
+        stack = []
+    new = {**state, "return_stack": stack, "state": target}
     new["steps_since_gate"] = steps_after(state, guard)
     new["log"] = [*state.get("log", []), {"from": current, "guard": guard, "to": target}]
     return Transition(new, summarize=new["steps_since_gate"] >= STEPS_BEFORE_SUMMARY)
@@ -148,7 +154,7 @@ def steps_after(state: dict[str, Any], guard: str) -> int:
 
 def record_baseline(plan: dict[str, Any], results: dict[int, bool]) -> dict[str, Any]:
     steps = []
-    for step in plan.get("steps", []):
+    for step in plan.get("steps") or []:
         kind = step.get("check", {}).get("kind")
         baseline = step.get("baseline")
         if step["n"] in results:
@@ -174,6 +180,9 @@ class TaskFile(ABC):
     def questions(self) -> dict[str, str]:
         return {}
 
+    def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        return []
+
 
 @dataclass
 class Brief(TaskFile):
@@ -194,6 +203,11 @@ class Brief(TaskFile):
         found += [f"brief.md: malformed ID line: {line}" for line in lines if re.match(r"^- [AQ]\d", line) and not (ACCEPTANCE_LINE.match(line) or QUESTION_LINE.match(line))]
         return found
 
+    def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        if (state.get("state"), guard) != ("requirements", "ready"):
+            return []
+        return [f"brief.md: {q} is still open" for q, s in self.questions().items() if s == "open"]
+
 
 @dataclass
 class Decisions(TaskFile):
@@ -211,9 +225,14 @@ class Decisions(TaskFile):
             for cited in d.get("serves", []):
                 if cited not in known:
                     found.append(f"{name} serves unknown {cited}")
-                elif d.get("status") == "agreed" and cited in questions:
-                    found.append(f"{name} is agreed but serves unconfirmed {cited}")
+                elif d.get("status") == "agreed" and questions.get(cited) == "open":
+                    found.append(f"{name} is agreed but serves open question {cited}")
         return found
+
+    def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        if state.get("state") != "design" or guard not in ("decided", "return"):
+            return []
+        return [f"decisions.yaml: {d.get('id')} is still proposed" for d in self.data if d.get("status") == "proposed"]
 
 
 @dataclass
@@ -224,14 +243,15 @@ class Plan(TaskFile):
         return set()
 
     def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
-        steps = self.data.get("steps", [])
+        steps = self.data.get("steps") or []
         found = duplicates("plan.yaml step", [s.get("n") for s in steps])
         for s in steps:
             name = f"plan.yaml: step {s.get('n')}"
             cited = s.get("acceptance", [])
             if not cited and not s.get("acceptance_none"):
                 found.append(f"{name} cites no acceptance ID and gives no acceptance_none reason")
-            found += [f"{name} cites unknown {a}" for a in cited if a not in known or a in questions]
+            found += [f"{name} cites unknown {a}" for a in cited if a not in known]
+            found += [f"{name} cites open question {a}" for a in cited if questions.get(a) == "open"]
             found += [f"{name} cites unknown {d}" for d in s.get("decisions", []) if d not in known]
             check = s.get("check", {})
             if check.get("kind") not in CHECK_KINDS:
@@ -250,10 +270,13 @@ class Review(TaskFile):
     data: dict[str, Any] = field(default_factory=dict)
 
     def defined_ids(self) -> set[str]:
-        return {f.get("id") for r in self.data.get("rounds", []) for f in r.get("findings", [])}
+        return set(self.finding_ids())
+
+    def finding_ids(self) -> list[str]:
+        return [f.get("id") for r in self.data.get("rounds") or [] for f in r.get("findings") or []]
 
     def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
-        ids = [f.get("id") for r in self.data.get("rounds", []) for f in r.get("findings", [])]
+        ids = self.finding_ids()
         return duplicates("review.yaml", ids)
 
 
@@ -266,13 +289,19 @@ class State(TaskFile):
 
     def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
         found = []
-        for name, allowed in (("state", (None, *STATES)), ("return_to", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
+        for name, allowed in (("state", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
             if self.data.get(name) not in allowed:
                 found.append(f"state.yaml: {name} is {self.data.get(name)!r}")
+        found += [f"state.yaml: return_stack holds {s!r}" for s in self.data.get("return_stack") or [] if s not in STATES]
         waiting = self.data.get("waiting_on")
         if waiting and questions.get(waiting) != "open":
             found.append(f"state.yaml: waiting_on {waiting} is not an open question")
         return found
+
+    def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        if (state.get("state"), guard) == ("design", "decided") and return_to(state):
+            return [f"state.yaml: return_stack is not empty; use 'return' to go back to {return_to(state)}"]
+        return []
 
 
 def duplicates(where: str, ids: list[Any]) -> list[str]:
@@ -284,3 +313,7 @@ def validate(files: Iterable[TaskFile]) -> list[str]:
     known = set().union(*(f.defined_ids() for f in files))
     questions = {q: s for f in files for q, s in f.questions().items()}
     return [p for f in files for p in f.problems(known, questions)]
+
+
+def exit_problems(files: Iterable[TaskFile], state: dict[str, Any], guard: str) -> list[str]:
+    return [p for f in files for p in f.exit_problems(state, guard)]

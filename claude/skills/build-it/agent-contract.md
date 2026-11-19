@@ -8,7 +8,7 @@ The dispatcher gives you:
 
 - `key`: the task key. The task files are in `~/.claude-work/<key>/`.
 - `state`: the state you run in. One agent can serve more than one state.
-- `return_to`: the state the task goes back to after your state, or `null`.
+- `return_to`: the state the task goes back to after your state, or `null`. It is the last entry of `return_stack` in `state.yaml`.
 - `kind` and `tier`, when they are set.
 - Other values that your agent definition names, for example a step number or critic models.
 
@@ -16,6 +16,7 @@ The dispatcher gives you:
 
 - Read only the files that your agent definition names. Other agents own the other files.
 - Use the CLI `~/.claude/skills/build-it/scripts/bi.py`. Call it by its full path.
+- `decisions.yaml` is a top-level YAML list. `plan.yaml` holds a top-level `steps:` list, and `review.yaml` a top-level `rounds:` list. The templates hold only comments, so write the top-level key with the first entry.
 - Get each new ID from `bi.py next-id <key> <A|Q|D|F>`. Do not choose an ID yourself.
 - Do not renumber an ID. Do not delete an ID that another file cites. `bi.py validate <key>` reports a deleted ID that a file still cites.
 - Change `kind`, `tier` or `waiting_on` only with `bi.py set <key> <field> <value>`. Do not edit `state.yaml` yourself.
@@ -26,15 +27,33 @@ The dispatcher gives you:
 - An acceptance criterion is a line `- A01: <observable outcome>` under `## Acceptance` in `brief.md`.
 - An open question is a line `- Q01 [open]: <question>` under `## Open questions`. Its status is `open`, `resolved` or `accepted`.
 - You can find a new acceptance criterion in any state. If the user stated it, add it as an `A` line. If it needs confirmation from the user or from colleagues, add it as a `Q` line with status `open`.
-- When the task must wait for colleagues to answer a question, run `bi.py set <key> waiting_on Q<n>` and stop with `ASK`. Tell the user what the question is and who must answer it.
+- When the task must wait for colleagues to answer a question, follow *Waiting* below.
 
 ## Decisions
 
 - A decision is an entry in `decisions.yaml`. The template shows its fields.
 - `agreed` means the user accepted this specific decision in words. An acknowledgement of a long message, or silence, is not agreement.
 - `proposed` means you suggested it and the user did not accept it yet. `delegated` means the user told you to decide.
-- An `agreed` decision can serve only `A` IDs. A `proposed` or `delegated` decision can serve a `Q` ID that waits on confirmation.
+- An `agreed` decision cannot serve an `open` question. It can serve an `A` ID, or a `Q` ID that is `resolved` or `accepted`. A `proposed` or `delegated` decision can serve an `open` question.
+- The Design state cannot exit with `decided` or `return` while a decision is `proposed`. The Requirements state cannot exit with `ready` while a question is `open`. `bi.py transition` refuses these.
 - Record what was rejected and why, in `rejected`.
+
+## Waiting
+
+When the task cannot continue until colleagues answer a question:
+
+1. Write your progress under `## Interview cursor` in `brief.md`. Start the entry with your state name. Say what you were doing, what you settled, and what the answer to the question unblocks.
+2. Run `bi.py set <key> waiting_on Q<n>`.
+3. End your turn with output in this form, and nothing before it:
+
+```
+WAIT Q<n>
+<the question, and who must answer it>
+```
+
+The dispatcher stops the task. When the answer arrives, a new agent starts in your state.
+
+When you start, read `## Interview cursor` in `brief.md`. If it holds an entry for your state, continue from it, and delete the entry when you no longer need it.
 
 ## Talking to the user
 
