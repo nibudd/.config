@@ -1,0 +1,12 @@
+# One round per review pass. Round 2 reviews only the fix commits.
+# - round: 1
+#   models: [<critic model>]
+#   findings:
+#     - id: F01
+#       claim: <what is wrong>
+#       location: <file:line>
+#       fix: <proposed fix, one sentence>
+#       refuted: false
+#       refutation: null
+#       call: null   # fix | skip, the user's call
+rounds: []

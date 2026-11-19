@@ -1,0 +1,13 @@
+# One entry per decision. Status: agreed (the user), proposed or delegated (Claude).
+# An agreed decision serves only A IDs. A proposed decision may serve a Q ID that waits on confirmation.
+# - id: D01
+#   status: proposed
+#   point: <the question the decision answers>
+#   choice: <what was chosen>
+#   pattern: <named design pattern, or "none">
+#   consequence: <what the choice commits the work to>
+#   rejected:
+#     - option: <alternative>
+#       why: <reason>
+#   serves: [A01]
+[]

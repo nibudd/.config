@@ -1,0 +1,14 @@
+# One entry per step. A step cites acceptance IDs, or gives acceptance_none with a reason.
+# check.kind: command (run, cwd) | new_test (name, asserts) | planned (run) | none (reason).
+# baseline is written by `bi.py baseline <key>`: pass | fail | new | planned.
+# - n: 1
+#   title: <one logical change>
+#   files: [<repo-relative path>]
+#   acceptance: [A01]
+#   decisions: [D01]
+#   check: {kind: command, run: "<command>", cwd: "<repo path>"}
+#   baseline: null
+#   gate: false
+#   status: todo
+#   commit: null
+steps: []

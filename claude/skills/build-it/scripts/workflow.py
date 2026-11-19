@@ -1,0 +1,276 @@
+import re
+from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass, field
+from typing import Any
+
+STATES = (
+    "requirements",
+    "orient",
+    "design",
+    "direct",
+    "plan",
+    "implement",
+    "review",
+    "fix",
+    "wrap",
+    "done",
+)
+KINDS = ("feature", "bug", "recovery", "foundation")
+TIERS = ("low", "standard", "high")
+DECISION_STATUSES = ("agreed", "proposed", "delegated")
+QUESTION_STATUSES = ("open", "resolved", "accepted")
+CHECK_KINDS = ("command", "new_test", "planned", "none")
+BASELINES = ("pass", "fail", "new", "planned")
+STEPS_BEFORE_SUMMARY = 5
+
+RETURN = "<return_to>"
+
+# (state, guard) -> (next state, return_to to set on the way in)
+TRANSITIONS: dict[tuple[str, str], tuple[str, str | None]] = {
+    ("requirements", "ready"): ("orient", None),
+    ("requirements", "return"): (RETURN, None),
+    ("orient", "understood"): ("design", None),
+    ("orient", "return"): (RETURN, None),
+    ("design", "decided"): ("direct", None),
+    ("design", "return"): (RETURN, None),
+    ("design", "approach_changed"): ("direct", None),
+    ("design", "new_criterion"): ("requirements", "design"),
+    ("design", "gap"): ("orient", "design"),
+    ("direct", "accepted"): ("plan", None),
+    ("direct", "new_decision"): ("design", None),
+    ("plan", "approved"): ("implement", None),
+    ("plan", "contradicts"): ("direct", None),
+    ("implement", "next_step"): ("implement", None),
+    ("implement", "summarized"): ("implement", None),
+    ("implement", "done"): ("review", None),
+    ("implement", "gate"): ("design", "implement"),
+    ("implement", "contradicts"): ("direct", None),
+    ("review", "approved"): ("fix", None),
+    ("review", "clean"): ("wrap", None),
+    ("review", "carried"): ("wrap", None),
+    ("fix", "clean"): ("wrap", None),
+    ("fix", "survives"): ("direct", None),
+    ("wrap", "fix_carried"): ("fix", None),
+    ("wrap", "suite_fails"): ("implement", None),
+    ("wrap", "done"): ("done", None),
+}
+
+DEFAULT_OWNED_PATHS = (
+    "**/terraform/**",
+    "**/*.tf",
+    "**/migrations/**",
+    ".github/workflows/**",
+    "**/Dockerfile*",
+    "**/docker-compose*.yml",
+    "**/pyproject.toml",
+    "**/package.json",
+    "**/uv.lock",
+    "**/poetry.lock",
+    "**/package-lock.json",
+    "**/*secret*",
+    "**/*auth*/**",
+    "**/*permission*",
+)
+
+ACCEPTANCE_LINE = re.compile(r"^- (A\d{2,}): \S")
+QUESTION_LINE = re.compile(r"^- (Q\d{2,}) \[(\w+)\]: \S")
+ID = re.compile(r"^([A-Z])(\d{2,})$")
+
+
+class TransitionError(ValueError):
+    pass
+
+
+def derive_key(ticket: str | None, repo: str, branch: str) -> str:
+    if ticket:
+        return ticket
+    return f"{repo.lstrip('.')}_{branch.replace('/', '_')}"
+
+
+def next_id(existing: Iterable[str], prefix: str) -> str:
+    numbers = [int(m.group(2)) for i in existing if (m := ID.match(i)) and m.group(1) == prefix]
+    return f"{prefix}{max(numbers, default=0) + 1:02d}"
+
+
+def tier_floor(paths: Iterable[str], owned: Iterable[str], match: Callable[[str, str], bool]) -> str:
+    globs = list(owned)
+    return "high" if any(match(g, p) for p in paths for g in globs) else "low"
+
+
+@dataclass
+class Transition:
+    state: dict[str, Any]
+    summarize: bool
+
+
+def transition(state: dict[str, Any], guard: str) -> Transition:
+    current = state["state"]
+    try:
+        target, return_to = TRANSITIONS[(current, guard)]
+    except KeyError:
+        allowed = sorted(g for s, g in TRANSITIONS if s == current)
+        raise TransitionError(f"no guard {guard!r} from {current!r}; allowed: {', '.join(allowed)}") from None
+    if guard == "carried" and state.get("tier") != "low":
+        raise TransitionError("findings are carried to the wrap only at the low tier")
+    new = dict(state)
+    if target == RETURN:
+        if not state.get("return_to"):
+            raise TransitionError(f"guard 'return' from {current!r} needs return_to set")
+        target = state["return_to"]
+        new["return_to"] = None
+    elif return_to:
+        new["return_to"] = return_to
+    new["state"] = target
+    new["steps_since_gate"] = steps_after(state, guard)
+    new["log"] = [*state.get("log", []), {"from": current, "guard": guard, "to": target}]
+    return Transition(new, summarize=new["steps_since_gate"] >= STEPS_BEFORE_SUMMARY)
+
+
+def steps_after(state: dict[str, Any], guard: str) -> int:
+    count = state.get("steps_since_gate", 0)
+    if guard == "next_step":
+        return count + 1
+    if guard in ("gate", "summarized"):
+        return 0
+    return count
+
+
+def record_baseline(plan: dict[str, Any], results: dict[int, bool]) -> dict[str, Any]:
+    steps = []
+    for step in plan.get("steps", []):
+        kind = step.get("check", {}).get("kind")
+        baseline = step.get("baseline")
+        if step["n"] in results:
+            baseline = "pass" if results[step["n"]] else "fail"
+        elif kind == "new_test":
+            baseline = "new"
+        elif kind == "planned":
+            baseline = "planned"
+        steps.append({**step, "baseline": baseline})
+    return {**plan, "steps": steps}
+
+
+@dataclass
+class TaskFile(ABC):
+    data: Any
+
+    @abstractmethod
+    def defined_ids(self) -> set[str]: ...
+
+    @abstractmethod
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]: ...
+
+    def questions(self) -> dict[str, str]:
+        return {}
+
+
+@dataclass
+class Brief(TaskFile):
+    data: str
+
+    def acceptance(self) -> set[str]:
+        return {m.group(1) for line in self.data.splitlines() if (m := ACCEPTANCE_LINE.match(line))}
+
+    def questions(self) -> dict[str, str]:
+        return {m.group(1): m.group(2) for line in self.data.splitlines() if (m := QUESTION_LINE.match(line))}
+
+    def defined_ids(self) -> set[str]:
+        return self.acceptance() | set(self.questions())
+
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
+        found = [f"brief.md: {q} has status {s!r}" for q, s in self.questions().items() if s not in QUESTION_STATUSES]
+        lines = self.data.splitlines()
+        found += [f"brief.md: malformed ID line: {line}" for line in lines if re.match(r"^- [AQ]\d", line) and not (ACCEPTANCE_LINE.match(line) or QUESTION_LINE.match(line))]
+        return found
+
+
+@dataclass
+class Decisions(TaskFile):
+    data: list[dict[str, Any]] = field(default_factory=list)
+
+    def defined_ids(self) -> set[str]:
+        return {d.get("id") for d in self.data}
+
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
+        found = duplicates("decisions.yaml", [d.get("id") for d in self.data])
+        for d in self.data:
+            name = f"decisions.yaml: {d.get('id')}"
+            if d.get("status") not in DECISION_STATUSES:
+                found.append(f"{name} has status {d.get('status')!r}")
+            for cited in d.get("serves", []):
+                if cited not in known:
+                    found.append(f"{name} serves unknown {cited}")
+                elif d.get("status") == "agreed" and cited in questions:
+                    found.append(f"{name} is agreed but serves unconfirmed {cited}")
+        return found
+
+
+@dataclass
+class Plan(TaskFile):
+    data: dict[str, Any] = field(default_factory=dict)
+
+    def defined_ids(self) -> set[str]:
+        return set()
+
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
+        steps = self.data.get("steps", [])
+        found = duplicates("plan.yaml step", [s.get("n") for s in steps])
+        for s in steps:
+            name = f"plan.yaml: step {s.get('n')}"
+            cited = s.get("acceptance", [])
+            if not cited and not s.get("acceptance_none"):
+                found.append(f"{name} cites no acceptance ID and gives no acceptance_none reason")
+            found += [f"{name} cites unknown {a}" for a in cited if a not in known or a in questions]
+            found += [f"{name} cites unknown {d}" for d in s.get("decisions", []) if d not in known]
+            check = s.get("check", {})
+            if check.get("kind") not in CHECK_KINDS:
+                found.append(f"{name} has check kind {check.get('kind')!r}")
+            elif check.get("kind") in ("command", "planned") and not check.get("run"):
+                found.append(f"{name} has a {check['kind']} check with no run command")
+            elif check.get("kind") == "none" and not check.get("reason"):
+                found.append(f"{name} has check kind 'none' with no reason")
+            if s.get("baseline") not in (None, *BASELINES):
+                found.append(f"{name} has baseline {s.get('baseline')!r}")
+        return found
+
+
+@dataclass
+class Review(TaskFile):
+    data: dict[str, Any] = field(default_factory=dict)
+
+    def defined_ids(self) -> set[str]:
+        return {f.get("id") for r in self.data.get("rounds", []) for f in r.get("findings", [])}
+
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
+        ids = [f.get("id") for r in self.data.get("rounds", []) for f in r.get("findings", [])]
+        return duplicates("review.yaml", ids)
+
+
+@dataclass
+class State(TaskFile):
+    data: dict[str, Any] = field(default_factory=dict)
+
+    def defined_ids(self) -> set[str]:
+        return set()
+
+    def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
+        found = []
+        for name, allowed in (("state", STATES), ("return_to", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
+            if self.data.get(name) not in allowed:
+                found.append(f"state.yaml: {name} is {self.data.get(name)!r}")
+        waiting = self.data.get("waiting_on")
+        if waiting and questions.get(waiting) != "open":
+            found.append(f"state.yaml: waiting_on {waiting} is not an open question")
+        return found
+
+
+def duplicates(where: str, ids: list[Any]) -> list[str]:
+    return [f"{where}: duplicate {i}" for i in sorted({i for i in ids if ids.count(i) > 1}, key=str)]
+
+
+def validate(files: Iterable[TaskFile]) -> list[str]:
+    files = list(files)
+    known = set().union(*(f.defined_ids() for f in files))
+    questions = {q: s for f in files for q, s in f.questions().items()}
+    return [p for f in files for p in f.problems(known, questions)]
