@@ -96,6 +96,12 @@ def derive_key(ticket: str | None, repo: str, branch: str) -> str:
     return f"{repo.lstrip('.')}_{branch.replace('/', '_')}"
 
 
+def is_default_branch(branch: str, origin_head: str | None) -> bool:
+    if origin_head:
+        return branch == origin_head
+    return branch in {"main", "master"}
+
+
 def next_id(existing: Iterable[str], prefix: str) -> str:
     numbers = [int(m.group(2)) for i in existing if (m := ID.match(i)) and m.group(1) == prefix]
     return f"{prefix}{max(numbers, default=0) + 1:02d}"

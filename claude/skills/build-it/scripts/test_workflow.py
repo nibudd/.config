@@ -420,6 +420,30 @@ def test_cli_rejects_old_task_and_detached_head(tmp_path, repo):
     assert detached.returncode == 1 and "detached" in detached.stderr
 
 
+@pytest.mark.parametrize(
+    ("branch", "origin_head", "expected"),
+    [
+        ("main", None, True),
+        ("master", None, True),
+        ("PROG-1013/port-metrics", None, False),
+        ("develop", "develop", True),
+        ("main", "develop", False),
+    ],
+)
+def test_is_default_branch(branch, origin_head, expected):
+    assert workflow.is_default_branch(branch, origin_head) is expected
+
+
+def test_cli_rejects_the_default_branch_without_a_ticket(tmp_path):
+    path = tmp_path / "platform"
+    subprocess.run(["git", "init", "-q", "-b", "main", str(path)], check=True)
+    work = tmp_path / "work"
+    refused = bi(work, "init", "--repo", str(path))
+    assert refused.returncode == 1 and "default branch" in refused.stderr
+    assert not work.exists()
+    assert bi(work, "init", "--repo", str(path), "--ticket", "PROG-1").returncode == 0
+
+
 def test_cli_transition_without_a_task(tmp_path):
     result = bi(tmp_path, "transition", "nothing-here", "ready")
     assert result.returncode == 1 and "bi.py init" in result.stderr

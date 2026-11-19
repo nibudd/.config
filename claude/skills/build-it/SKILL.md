@@ -19,6 +19,7 @@ Tools:
 ## 1. Find or start the task
 
 1. Derive the key from my CLAUDE.md rule: the ticket if I name one, else `<repo>_<branch>`.
+   - If I name no ticket and the branch is the default branch of the repo, do not derive a key. Every task on that branch would get the same key. Tell me to create a branch for the task or to name a ticket, and stop.
 2. If `~/.claude-work/<key>/worklog.md` exists, it is an old task. Tell me to use `/build-it-v1` for it, and stop.
 3. If `~/.claude-work/<key>/state.yaml` exists and its `state` is set, resume the task from that state. Tell me the state in one line.
 4. Otherwise, run `$BI init --repo . [--ticket <KEY>]`. It prints the key and creates the task files from the templates.

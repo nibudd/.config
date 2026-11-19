@@ -60,11 +60,24 @@ def git(repo: Path, *args: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=True).stdout.strip()
 
 
+def origin_head(repo: Path) -> str | None:
+    result = subprocess.run(
+        ["git", "-C", str(repo), "symbolic-ref", "--short", "refs/remotes/origin/HEAD"], capture_output=True, text=True
+    )
+    return result.stdout.strip().removeprefix("origin/") if result.returncode == 0 else None
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     repo = Path(git(Path(args.repo), "rev-parse", "--show-toplevel"))
     branch = git(repo, "branch", "--show-current")
     if not args.ticket and not branch:
         print("HEAD is detached, so no branch names the task. Check out a branch or pass --ticket.", file=sys.stderr)
+        return 1
+    if not args.ticket and workflow.is_default_branch(branch, origin_head(repo)):
+        print(
+            f"{branch} is the default branch, so every task on it would share one key. Create a branch for the task or pass --ticket.",
+            file=sys.stderr,
+        )
         return 1
     key = workflow.derive_key(args.ticket, repo.name, branch)
     directory = task_dir(key)
