@@ -23,6 +23,7 @@ QUESTION_STATUSES = ("open", "resolved", "accepted")
 CHECK_KINDS = ("command", "new_test", "planned", "none")
 BASELINES = ("pass", "fail", "new", "planned")
 STEPS_BEFORE_SUMMARY = 5
+SETTABLE = {"kind": KINDS, "tier": TIERS, "waiting_on": None}
 
 RETURN = "<return_to>"
 
@@ -125,6 +126,15 @@ def transition(state: dict[str, Any], guard: str) -> Transition:
     new["steps_since_gate"] = steps_after(state, guard)
     new["log"] = [*state.get("log", []), {"from": current, "guard": guard, "to": target}]
     return Transition(new, summarize=new["steps_since_gate"] >= STEPS_BEFORE_SUMMARY)
+
+
+def set_field(state: dict[str, Any], name: str, value: str | None) -> dict[str, Any]:
+    if name not in SETTABLE:
+        raise TransitionError(f"cannot set {name!r}; settable: {', '.join(SETTABLE)}")
+    allowed = SETTABLE[name]
+    if allowed is not None and value not in allowed:
+        raise TransitionError(f"{name} must be one of {', '.join(allowed)}")
+    return {**state, name: value}
 
 
 def steps_after(state: dict[str, Any], guard: str) -> int:
@@ -256,7 +266,7 @@ class State(TaskFile):
 
     def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
         found = []
-        for name, allowed in (("state", STATES), ("return_to", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
+        for name, allowed in (("state", (None, *STATES)), ("return_to", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
             if self.data.get(name) not in allowed:
                 found.append(f"state.yaml: {name} is {self.data.get(name)!r}")
         waiting = self.data.get("waiting_on")

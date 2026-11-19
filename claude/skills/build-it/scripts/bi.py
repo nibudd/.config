@@ -38,14 +38,16 @@ def write_yaml(path: Path, data: Any) -> None:
     path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
 
 
-def load(directory: Path) -> list[TaskFile]:
+def load(directory: Path, state: dict[str, Any] | None = None) -> list[TaskFile]:
     brief = directory / "brief.md"
+    if state is None:
+        state = read_yaml(directory / "state.yaml", {"state": "requirements"})
     return [
         Brief(brief.read_text() if brief.exists() else ""),
         Decisions(read_yaml(directory / "decisions.yaml", [])),
         Plan(read_yaml(directory / "plan.yaml", {})),
         Review(read_yaml(directory / "review.yaml", {})),
-        State(read_yaml(directory / "state.yaml", {"state": "requirements"})),
+        State(state),
     ]
 
 
@@ -103,6 +105,23 @@ def cmd_transition(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_set(args: argparse.Namespace) -> int:
+    path = task_dir(args.key) / "state.yaml"
+    value = None if args.value in ("null", "none", "") else args.value
+    try:
+        state = workflow.set_field(read_yaml(path, {}), args.field, value)
+    except TransitionError as error:
+        print(error, file=sys.stderr)
+        return 1
+    problems = workflow.validate(load(task_dir(args.key), state))
+    if problems:
+        print("Not set:\n" + "\n".join(problems), file=sys.stderr)
+        return 1
+    write_yaml(path, state)
+    print("ok")
+    return 0
+
+
 def cmd_baseline(args: argparse.Namespace) -> int:
     path = task_dir(args.key) / "plan.yaml"
     plan = read_yaml(path, {})
@@ -150,6 +169,11 @@ def main() -> int:
     nxt.add_argument("key")
     nxt.add_argument("prefix", choices=["A", "Q", "D", "F"])
     nxt.set_defaults(func=cmd_next_id)
+    setter = sub.add_parser("set")
+    setter.add_argument("key")
+    setter.add_argument("field", choices=sorted(workflow.SETTABLE))
+    setter.add_argument("value")
+    setter.set_defaults(func=cmd_set)
     trans = sub.add_parser("transition")
     trans.add_argument("key")
     trans.add_argument("guard")

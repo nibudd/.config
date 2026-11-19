@@ -215,6 +215,7 @@ def test_review_duplicate_findings():
     [
         ({"state": "plan", "kind": "bug", "tier": "high"}, []),
         ({"state": "intake"}, ["state.yaml: state is 'intake'"]),
+        ({"state": None, "prs": [{"number": 12}]}, []),
         ({"state": "plan", "return_to": "nowhere"}, ["state.yaml: return_to is 'nowhere'"]),
         ({"state": "plan", "kind": "chore"}, ["state.yaml: kind is 'chore'"]),
         ({"state": "plan", "tier": "medium"}, ["state.yaml: tier is 'medium'"]),
@@ -280,3 +281,35 @@ def test_cli_baseline(tmp_path, repo):
     bi(work, "baseline", key)
     steps = yaml.safe_load((work / key / "plan.yaml").read_text())["steps"]
     assert [s["baseline"] for s in steps] == ["pass", "fail"]
+
+
+@pytest.mark.parametrize(
+    ("name", "value", "error"),
+    [
+        *[("kind", kind, None) for kind in workflow.KINDS],
+        *[("tier", tier, None) for tier in workflow.TIERS],
+        ("waiting_on", "Q01", None),
+        ("waiting_on", None, None),
+        ("kind", "chore", "kind must be one of"),
+        ("tier", "medium", "tier must be one of"),
+        ("state", "wrap", "cannot set 'state'"),
+    ],
+)
+def test_set_field(name, value, error):
+    if error:
+        with pytest.raises(TransitionError, match=error):
+            workflow.set_field({"state": "plan"}, name, value)
+    else:
+        assert workflow.set_field({"state": "plan"}, name, value)[name] == value
+
+
+def test_cli_set(tmp_path, repo):
+    work = tmp_path / "work"
+    key = json.loads(bi(work, "init", "--repo", str(repo)).stdout)["key"]
+    (work / key / "brief.md").write_text(BRIEF)
+    assert bi(work, "set", key, "tier", "high").returncode == 0
+    assert bi(work, "set", key, "waiting_on", "Q02").returncode == 1
+    assert yaml.safe_load((work / key / "state.yaml").read_text())["waiting_on"] is None
+    assert bi(work, "set", key, "waiting_on", "Q01").returncode == 0
+    state = yaml.safe_load((work / key / "state.yaml").read_text())
+    assert (state["tier"], state["waiting_on"]) == ("high", "Q01")
