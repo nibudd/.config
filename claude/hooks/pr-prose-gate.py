@@ -9,6 +9,7 @@ import sys
 MARKER = "TODO: Update Prose"
 TICKET_KEY = re.compile(r"\b(?:PROG|CO)-\d+\b")
 PR_COMMAND = re.compile(r"\bgh\s+pr\s+(?:create|ready)\b")
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)")
 
 
 def git(repo, *args):
@@ -33,19 +34,29 @@ def base_ref(repo):
 
 def added_lines(repo, base):
     current = None
+    number = 0
     for line in git(repo, "diff", "-U0", f"{base}...HEAD").splitlines():
         if line.startswith("+++ "):
             current = line[6:] if line.startswith("+++ b/") else None
+        elif hunk := HUNK.match(line):
+            number = int(hunk.group(1))
         elif line.startswith("+") and current:
-            yield current, line[1:]
+            yield current, number, line[1:]
+            number += 1
 
 
 def violations(lines):
-    for path, text in lines:
+    for path, number, text in lines:
         if MARKER in text:
-            yield f"{path}: prose marker: {text.strip()}"
+            yield f"{path}:{number}: prose marker: {text.strip()}"
         elif not path.endswith(".md") and TICKET_KEY.search(text):
-            yield f"{path}: ticket key: {text.strip()}"
+            yield f"{path}:{number}: ticket key: {text.strip()}"
+
+
+def check(repo):
+    found = list(violations(added_lines(repo, base_ref(repo))))
+    print("\n".join(found) or "ok")
+    return 1 if found else 0
 
 
 def main():
@@ -70,4 +81,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--check":
+        sys.exit(check(sys.argv[2] if len(sys.argv) > 2 else "."))
     sys.exit(main())

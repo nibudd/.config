@@ -56,3 +56,22 @@ def test_non_pr_commands_pass(repo_with_marker, command):
 )
 def test_pr_commands_block_on_marker(repo_with_marker, command):
     assert run_hook(repo_with_marker, command) == 2
+
+
+def run_check(repo):
+    return subprocess.run([sys.executable, str(HOOK), "--check", str(repo)], capture_output=True, text=True)
+
+
+def test_check_reports_file_and_line(repo_with_marker):
+    (repo_with_marker / "app.py").write_text('x = 1\ny = 2\nraise ValueError("TODO: Update Prose bad input")\n')
+    git(repo_with_marker, "commit", "-q", "-am", "move marker")
+    result = run_check(repo_with_marker)
+    assert result.returncode == 1
+    assert result.stdout.strip() == 'app.py:3: prose marker: raise ValueError("TODO: Update Prose bad input")'
+
+
+def test_check_passes_clean_branch(repo_with_marker):
+    (repo_with_marker / "app.py").write_text("x = 1\n")
+    git(repo_with_marker, "commit", "-q", "-am", "drop marker")
+    result = run_check(repo_with_marker)
+    assert (result.returncode, result.stdout.strip()) == (0, "ok")
