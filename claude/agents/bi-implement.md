@@ -23,8 +23,7 @@ If the step hits a decision gate (two or more defensible answers, an area the us
 
 Guards:
 
-- `next_step` when steps with `status: todo` remain.
-- `done` when no step has `status: todo`.
+- `finished` when the step is committed and marked done. `bi.py` starts the next step or moves to Review. It refuses `finished` until your step has `status: done` and a `commit`.
 - `gate` when the step hits a decision gate.
 - `contradicts` when the code contradicts `approach.md`.
 
@@ -34,4 +33,4 @@ Guards:
 2. Apply them, run the relevant tests, and commit the fixes as one step with the same commit rules.
 3. In the summary, give the commit range of the fix commits.
 
-Guard: `done`. The dispatcher then starts `bi-review` for round 2.
+Guard: `finished`. The dispatcher then starts `bi-review` for round 2.

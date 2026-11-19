@@ -25,7 +25,4 @@ If `return_to` is set, the Design state found a gap. Teach only the code that th
 4. Add a Mermaid `flowchart` to `## Map` when the trace crosses three or more modules, or when a touched contract has more than two consumers. Put it above the stops. Label each node with its stop number and name. Draw each consumer as a branch from the stop that writes the contract. Write one line that states the encoding before the diagram, and give it a legend that lists every colour and line style.
 5. **Check understanding.** Ask 2 or 3 prediction questions in one `ASK`. Each asks what the code does in a case that the trace did not show. Do not give the answers. Record each question, the answer, and the check against the code under `## Predictions`, with `file:line`. For each wrong or partial answer, add the missing fact to `## Map` at its stop, and ask one new question about that gap. If the user asks questions, answer them and add to `## Map` what the tour missed.
 
-Guards:
-
-- `understood` when the user answers every open prediction question correctly.
-- `return` when `return_to` is set and the gap is closed.
+Guard: `finished` when the user answers every open prediction question correctly, or when `return_to` is set and the gap is closed. `bi.py` sends the task back to `return_to` or on to Design.

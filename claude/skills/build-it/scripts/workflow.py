@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable
@@ -23,7 +25,12 @@ QUESTION_STATUSES = ("open", "resolved", "accepted")
 CHECK_KINDS = ("command", "new_test", "planned", "none")
 BASELINES = ("pass", "fail", "new", "planned")
 STEPS_BEFORE_SUMMARY = 5
+STEP_STATUSES = ("todo", "done")
 SETTABLE = {"kind": KINDS, "tier": TIERS, "waiting_on": None}
+
+FINISHED = "finished"
+# The guard that "finished" resolves to when the return stack is empty.
+FORWARD = {"requirements": "ready", "orient": "understood", "design": "decided"}
 
 RETURN = "<return>"
 
@@ -110,6 +117,22 @@ def return_to(state: dict[str, Any]) -> str | None:
     return stack[-1] if stack else None
 
 
+def resolve_guard(state: dict[str, Any], guard: str, files: Iterable[TaskFile]) -> str:
+    if guard != FINISHED:
+        return guard
+    current = state.get("state")
+    if current == "implement":
+        return "next_step" if any(f.todo_steps() for f in files) else "done"
+    if current not in FORWARD:
+        raise TransitionError(f"guard 'finished' does not apply to {current!r}; name the guard")
+    return "return" if return_to(state) else FORWARD[current]
+
+
+def first_todo_step(files: Iterable[TaskFile]) -> int | None:
+    steps = [n for f in files for n in f.todo_steps()]
+    return min(steps) if steps else None
+
+
 def transition(state: dict[str, Any], guard: str) -> Transition:
     current = state["state"]
     try:
@@ -181,6 +204,9 @@ class TaskFile(ABC):
         return {}
 
     def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        return []
+
+    def todo_steps(self) -> list[int]:
         return []
 
 
@@ -262,7 +288,22 @@ class Plan(TaskFile):
                 found.append(f"{name} has check kind 'none' with no reason")
             if s.get("baseline") not in (None, *BASELINES):
                 found.append(f"{name} has baseline {s.get('baseline')!r}")
+            if s.get("status", "todo") not in STEP_STATUSES:
+                found.append(f"{name} has status {s.get('status')!r}")
+            elif s.get("status") == "done" and not s.get("commit"):
+                found.append(f"{name} is done but records no commit")
         return found
+
+    def todo_steps(self) -> list[int]:
+        return [s.get("n") for s in self.data.get("steps") or [] if s.get("status", "todo") == "todo"]
+
+    def exit_problems(self, state: dict[str, Any], guard: str) -> list[str]:
+        if state.get("state") != "implement" or guard not in ("next_step", "done") or state.get("step") is None:
+            return []
+        step = next((s for s in self.data.get("steps") or [] if s.get("n") == state["step"]), {})
+        if step.get("status") != "done":
+            return [f"plan.yaml: step {state['step']} is not marked done; set its status and commit"]
+        return []
 
 
 @dataclass

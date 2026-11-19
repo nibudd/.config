@@ -283,11 +283,11 @@ def test_cli_round_trip(tmp_path, repo):
     (task / "brief.md").write_text(BRIEF)
     assert bi(work, "next-id", key, "A").stdout.strip() == "A03"
 
-    open_question = bi(work, "transition", key, "ready")
+    open_question = bi(work, "transition", key, "finished")
     assert open_question.returncode == 1 and "Q01 is still open" in open_question.stderr
     (task / "brief.md").write_text(BRIEF.replace("Q01 [open]", "Q01 [resolved]"))
-    moved = bi(work, "transition", key, "ready")
-    assert json.loads(moved.stdout) == {"state": "orient", "return_to": None, "summarize": False}
+    moved = bi(work, "transition", key, "finished")
+    assert json.loads(moved.stdout) == {"guard": "ready", "state": "orient", "return_to": None, "step": None, "summarize": False}
     (task / "brief.md").write_text(BRIEF)
     state = yaml.safe_load((task / "state.yaml").read_text())
     assert state["repos"] == [{"path": str(repo.resolve()), "branch": "PROG-1013/port-metrics"}]
@@ -381,7 +381,8 @@ def agent_guards() -> set[str]:
         for line in path.read_text().splitlines():
             if re.match(r"^\s*-?\s*Guards?:", line):
                 in_guards = True
-                guards.update(re.findall(r"`(\w+)`", line.split(":", 1)[1]))
+                if first := re.search(r"`(\w+)`", line.split(":", 1)[1]):
+                    guards.add(first.group(1))
                 continue
             if in_guards and (m := GUARD_BULLET.match(line)):
                 guards.add(m.group(1))
@@ -392,8 +393,9 @@ def agent_guards() -> set[str]:
 
 def test_agent_guards_match_the_transition_table():
     table = {g for _, g in workflow.TRANSITIONS}
+    resolved_by_script = {"ready", "understood", "decided", "return", "next_step"}
     dispatcher_only = {"summarized"}
-    assert agent_guards() == table - dispatcher_only
+    assert agent_guards() == (table - resolved_by_script - dispatcher_only) | {workflow.FINISHED}
 
 
 @pytest.mark.parametrize("name", ["decisions.yaml", "plan.yaml", "review.yaml", "state.yaml"])
@@ -427,3 +429,91 @@ def test_cli_reports_invalid_yaml(tmp_path, repo):
     (work / key / "decisions.yaml").write_text("[]\n- id: D01\n")
     result = bi(work, "validate", key)
     assert result.returncode == 1 and "decisions.yaml is not valid YAML" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("state", "files", "expected"),
+    [
+        ({"state": "requirements", "return_stack": []}, [], "ready"),
+        ({"state": "requirements", "return_stack": ["design"]}, [], "return"),
+        ({"state": "orient", "return_stack": []}, [], "understood"),
+        ({"state": "orient", "return_stack": ["design"]}, [], "return"),
+        ({"state": "design", "return_stack": []}, [], "decided"),
+        ({"state": "design", "return_stack": ["implement"]}, [], "return"),
+        ({"state": "implement"}, [Plan({"steps": [step(1, status="done", commit="abc"), step(2)]})], "next_step"),
+        ({"state": "implement"}, [Plan({"steps": [step(1, status="done", commit="abc")]})], "done"),
+    ],
+)
+def test_finished_resolves_from_the_state(state, files, expected):
+    assert workflow.resolve_guard(state, workflow.FINISHED, files) == expected
+
+
+@pytest.mark.parametrize("guard", ["gap", "new_criterion", "approach_changed", "contradicts"])
+def test_named_guards_pass_through(guard):
+    assert workflow.resolve_guard({"state": "design", "return_stack": ["implement"]}, guard, []) == guard
+
+
+@pytest.mark.parametrize("source", ["direct", "plan", "review", "fix", "wrap"])
+def test_finished_needs_a_named_guard_elsewhere(source):
+    with pytest.raises(TransitionError, match="name the guard"):
+        workflow.resolve_guard({"state": source}, workflow.FINISHED, [])
+
+
+@pytest.mark.parametrize(
+    ("steps", "expected"),
+    [
+        ([step(1, status="done", commit="abc"), step(3), step(2)], 2),
+        ([step(1, status="done", commit="abc")], None),
+        ([], None),
+    ],
+)
+def test_first_todo_step(steps, expected):
+    assert workflow.first_todo_step([Plan({"steps": steps})]) == expected
+
+
+@pytest.mark.parametrize(
+    ("state", "guard", "steps", "expected"),
+    [
+        ({"state": "implement", "step": 1}, "next_step", [step(1, status="done", commit="abc"), step(2)], []),
+        ({"state": "implement", "step": 1}, "next_step", [step(1), step(2)], ["plan.yaml: step 1 is not marked done; set its status and commit"]),
+        ({"state": "implement", "step": 2}, "done", [step(1, status="done", commit="a"), step(2)], ["plan.yaml: step 2 is not marked done; set its status and commit"]),
+        ({"state": "implement", "step": 1}, "gate", [step(1)], []),
+        ({"state": "implement", "step": None}, "done", [step(1)], []),
+    ],
+)
+def test_implement_needs_its_step_done(state, guard, steps, expected):
+    assert workflow.exit_problems([Plan({"steps": steps})], state, guard) == expected
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"status": "done", "commit": "abc"}, []),
+        ({"status": "done"}, ["plan.yaml: step 1 is done but records no commit"]),
+        ({"status": "started"}, ["plan.yaml: step 1 has status 'started'"]),
+    ],
+)
+def test_step_status(overrides, expected):
+    assert workflow.validate([Brief(BRIEF), Plan({"steps": [step(1, **overrides)]})]) == expected
+
+
+def test_cli_tracks_the_implement_step(tmp_path, repo):
+    work = tmp_path / "work"
+    key = json.loads(bi(work, "init", "--repo", str(repo)).stdout)["key"]
+    task = work / key
+    (task / "brief.md").write_text(BRIEF)
+    state = yaml.safe_load((task / "state.yaml").read_text())
+    (task / "state.yaml").write_text(yaml.safe_dump({**state, "state": "plan"}))
+    (task / "plan.yaml").write_text(yaml.safe_dump({"steps": [step(1), step(2)]}))
+
+    entered = json.loads(bi(work, "transition", key, "approved").stdout)
+    assert (entered["state"], entered["step"]) == ("implement", 1)
+    assert "step 1 is not marked done" in bi(work, "transition", key, "finished").stderr
+
+    (task / "plan.yaml").write_text(yaml.safe_dump({"steps": [step(1, status="done", commit="a1"), step(2)]}))
+    moved = json.loads(bi(work, "transition", key, "finished").stdout)
+    assert (moved["guard"], moved["step"]) == ("next_step", 2)
+
+    (task / "plan.yaml").write_text(yaml.safe_dump({"steps": [step(1, status="done", commit="a1"), step(2, status="done", commit="b2")]}))
+    finished = json.loads(bi(work, "transition", key, "finished").stdout)
+    assert (finished["guard"], finished["state"], finished["step"]) == ("done", "review", None)

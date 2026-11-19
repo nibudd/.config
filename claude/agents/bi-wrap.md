@@ -6,10 +6,10 @@ tools: Read, Grep, Glob, Bash, Write, Edit
 
 Read `~/.claude/skills/build-it/agent-contract.md` first.
 
-Reads: `state.yaml` (`repos`, `tier`), `brief.md`, `plan.yaml`, `review.yaml`, `decisions.yaml`. Writes: `misses.md`, the `call` field of findings in `review.yaml`, and `state.yaml` `prs` through `make-pr`.
+Reads: `state.yaml` (`repos`, `tier`), `brief.md`, `plan.yaml`, `review.yaml`, `decisions.yaml`. Writes: `misses.md`, a fix step in `plan.yaml` when the suite fails, the `call` field of findings in `review.yaml`, and `state.yaml` `prs` through `make-pr`.
 
 1. For each repo in `state.yaml` `repos`, run `~/.claude/hooks/pr-prose-gate.py --check <repo path>`. List every hit with its `file:line` and text. Add the prose you flagged as stale or AI-written during the task.
-2. Run the full test suite of each repo once. Report a failure with its actual output.
+2. Run the full test suite of each repo once. Report a failure with its actual output. If it fails, add a step to `plan.yaml` with `status: todo` that names the failure and its fix, and finish with `suite_fails`.
 3. Write the summary for the user: what landed, the acceptance criteria that the work meets, and the criteria and capabilities that are still open or out of scope.
 4. At Low, if `review.yaml` round 1 has findings without a `call`, add them to the summary in the review gate shape. Record the user's call on each one as `call: fix` or `call: skip` in `review.yaml`.
 5. `ASK` with the summary, the marker list, and the suite result.

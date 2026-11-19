@@ -32,8 +32,8 @@ Repeat until the state is `done`:
 2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to` (the last entry of `return_stack`, or null), `kind`, `tier`, and the extra values in the table. Give it my task text only in the Requirements state.
 3. Read the agent's final output.
    - If it starts with `ASK`, show me the text after the `ASK` line verbatim, with nothing added, and end your turn. When I reply, send my reply verbatim to the same agent with `SendMessage`. Then repeat step 3 with its next output.
-   - If it starts with `WAIT Q<n>`, tell me which question the task waits on and who must answer it, and stop.
-   - If it starts with `DONE <guard>`, run `$BI transition <key> <guard>`. Post one line: the old state, the guard, the new state, and the agent's summary in one sentence.
+   - If it starts with `WAIT Q<n>`, run `$BI set <key> waiting_on Q<n>`. If that fails, send the error to the same agent with `SendMessage` and repeat step 3. If it succeeds, tell me which question the task waits on and who must answer it, and stop.
+   - If it starts with `DONE <guard>`, run `$BI transition <key> <guard>`. For `finished`, the output names the guard it resolved to. Post one line: the old state, that guard, the new state, and the agent's summary in one sentence.
 4. If `transition` fails, send its error to the same agent with `SendMessage` once, and ask it to fix the files or choose another guard. If it fails again, show me the error and stop. Do not edit task files yourself.
 5. If `transition` returns `"summarize": true`, five steps passed with no gate. Post a summary of those five steps from the agents' summaries, and wait for me. Then run `$BI transition <key> summarized` and continue.
 
@@ -51,7 +51,7 @@ Repeat until the state is `done`:
 
 Start a new agent for each Implement step, so that each step starts with a clean context.
 
-In the Fix state, `bi-implement` finishes with `DONE done`. Do not run a transition for it. Start `bi-review` for round 2, and run the transition on the guard that `bi-review` returns.
+In the Fix state, `bi-implement` finishes with `DONE finished`. Do not run a transition for it. Start `bi-review` for round 2, and run the transition on the guard that `bi-review` returns.
 
 ## 3. Critic models
 

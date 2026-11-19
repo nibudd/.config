@@ -107,18 +107,23 @@ def cmd_transition(args: argparse.Namespace) -> int:
         print(f"{directory}/state.yaml has no state. Run `bi.py init` first.", file=sys.stderr)
         return 1
     files = load(directory, state)
-    problems = workflow.validate(files) + workflow.exit_problems(files, state, args.guard)
+    try:
+        guard = workflow.resolve_guard(state, args.guard, files)
+    except TransitionError as error:
+        print(error, file=sys.stderr)
+        return 1
+    problems = workflow.validate(files) + workflow.exit_problems(files, state, guard)
     if problems:
         print("Fix these before the transition:\n" + "\n".join(problems), file=sys.stderr)
         return 1
     try:
-        result = workflow.transition(state, args.guard)
+        result = workflow.transition(state, guard)
     except TransitionError as error:
         print(error, file=sys.stderr)
         return 1
-    write_yaml(directory / "state.yaml", result.state)
-    new = result.state
-    print(json.dumps({"state": new["state"], "return_to": workflow.return_to(new), "summarize": result.summarize}))
+    new = {**result.state, "step": workflow.first_todo_step(files) if result.state["state"] == "implement" else None}
+    write_yaml(directory / "state.yaml", new)
+    print(json.dumps({"guard": guard, "state": new["state"], "return_to": workflow.return_to(new), "step": new["step"], "summarize": result.summarize}))
     return 0
 
 
