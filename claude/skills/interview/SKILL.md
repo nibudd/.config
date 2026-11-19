@@ -1,15 +1,18 @@
 ---
 name: interview
-description: Interview the user about technical preferences before implementing a task
+description: Interview the user about requirements, design decisions and code style before implementing a task. Writes brief.md and decisions.yaml under the task key.
 ---
 
-Interview me about how I want the code to look like for the following task:
+Interview me about the following task:
 
 $ARGUMENTS
 
-I want to be very opinionated about everything technical, like naming, design pattern, architecture, trade-offs, and the whole technical implementation.
-You can only ask me one question at a time. Keep in your context all the questions you want to make, but you can only ask me one at a time.
+I want to be very opinionated about everything technical: what "done" means, the decisions in the solution and the patterns they use, and how the code looks.
 
-Lead every question with **your recommended answer and the reasoning behind it**, so I confirm or correct rather than answer from a blank page. Draw the recommendation from the codebase, my CLAUDE.md preferences, and sensible defaults. If you genuinely have no lean, say so and give me the trade-off instead.
+1. Read `~/.claude/skills/interview/agendas.md`. Use **recommend-first** mode.
+2. Find the task directory. Derive the key from my CLAUDE.md rule. Unless `~/.claude-work/<key>/state.yaml` already has a `state`, run `~/.claude/skills/build-it/scripts/bi.py init --repo . [--ticket <KEY>]`. It prints the key and creates the task files.
+3. Run the requirements agenda, then the design agenda, then the style agenda. If the arguments name only some agendas, run only those.
+4. Ask one question at a time.
+5. Run `bi.py validate <key>` at the end and fix what it reports. Then tell me in one line which files you wrote and which questions are still open.
 
-Before asking ANY QUESTION, investigate the codebase. The code probably already answer most of your questions. Do not assume stuff. Verify if the existing code has what you need, or if you need to create it.
+A later `/build-it <key>` reads these files. It skips the requirements and design work that is already done.

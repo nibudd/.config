@@ -34,7 +34,7 @@ If a PR already exists for this branch, don't open a second one. Draft its title
 
 If the diff holds possible secrets (`.env`, `credentials.json`, keys, tokens), list them and STOP. Push nothing until I say so.
 
-**Read the worklog** at `~/.claude-work/<key>/worklog.md` if one exists (key derivation is in my CLAUDE.md). Its `## Decisions` section is the raw material for the *Why* — it's the part the diff can't show. If there's no worklog, get the Why from the commit bodies and our conversation.
+**Read the decisions** at `~/.claude-work/<key>/decisions.yaml` if the file exists (key derivation is in my CLAUDE.md). Read `brief.md` in the same directory too, if it exists: its `## Outcome` and `## Acceptance` say what the work is for. The decisions are the raw material for the *Why* — they're the part the diff can't show. An old task has a `worklog.md` with a `## Decisions` section instead; read that. If none of these exists, get the Why from the commit bodies and our conversation.
 
 ## Step 2: Plan the split
 
@@ -85,7 +85,7 @@ refactor: PROG-1013 read filter participants from precomputed metrics
 ```
 
 - **Prefix** from what the PR does, not from the branch name: `feat` (new capability), `fix`, `refactor` (behaviour-preserving), `perf`, `docs`, `test`, `build`, `ci`, `chore`.
-- **Ticket** from the branch prefix, upper-cased. If the worklog or commits name a different ticket than the branch does, ask which is right rather than guessing.
+- **Ticket** from the branch prefix, upper-cased. If the task files or commits name a different ticket than the branch does, ask which is right rather than guessing.
 - **Subject**: ≤60 characters, one clause, imperative, no trailing period. Derive it from the branch name but rewrite it to **name the effect, not the edit** — same rule as my `commit` skill, and for the same reason: I squash-merge, so this title becomes a changelog line on `main` and has to stand alone there.
 - Don't append `(#NNN)` — GitHub does that on squash merge.
 
@@ -105,7 +105,7 @@ The summary is the PR body. Keep it short. The reviewer's attention is the scarc
 
 - **Stacked line** only when there's more than one PR. Single PR: omit it entirely.
 - **What** — the effect of the change. Name behaviour and structure, not paths, except where a path is the clearest way to say it. A point says what is now true that wasn't before. It never names a commit, and it names a file only when that file *is* the effect.
-- **Why** — what was broken or missing, or what this unblocks. Take it from the `## Decisions` section of the worklog, which holds the part the diff can't show. If the PR doesn't change production behaviour yet, say so here in a clause.
+- **Why** — what was broken or missing, or what this unblocks. Take it from `decisions.yaml` (or an old task's worklog `## Decisions`), which holds the part the diff can't show. If the PR doesn't change production behaviour yet, say so here in a clause.
 - **Notes** — a third `# Notes` section is allowed but **default to omitting it**. Add it only for something a reviewer would otherwise get wrong: a load-bearing ordering constraint, a rejected alternative, an accepted risk, a generated-file line count. Hard cap 3 bullets, one line each. Before you add a note, look for the line of code or the code comment that already says it. If one exists, drop the note. A note never compares the PR to its ticket's original acceptance criteria, because the reviewer reads the code, not the ticket.
 
 Never include:
@@ -153,6 +153,6 @@ Then report the PR URLs as a table:
 | # | branch | base | title | commits | ~lines | url |
 |---|--------|------|-------|---------:|-------:|-----|
 
-Record them in the worklog under a `## PRs` section (`- #<n> <title> — <url>`) so they survive a context clear.
+Record them under `prs` in `~/.claude-work/<key>/state.yaml` (`- {number: <n>, title: <title>, url: <url>}`) so they survive a context clear. Create the file with only a `prs` list if it does not exist. An old task with a `worklog.md` and no `state.yaml` records them in the worklog under `## PRs` instead.
 
 If a push is rejected or `gh pr create` fails, stop and show the error. Don't force-push, and don't retry with `--force` or a different branch name without asking.

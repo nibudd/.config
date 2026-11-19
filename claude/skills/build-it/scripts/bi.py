@@ -60,7 +60,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     branch = git(repo, "branch", "--show-current")
     key = workflow.derive_key(args.ticket, repo.name, branch)
     directory = task_dir(key)
-    if (directory / "state.yaml").exists():
+    if read_yaml(directory / "state.yaml", {}).get("state"):
         print(f"{directory} already holds a task; resume it instead", file=sys.stderr)
         return 1
     directory.mkdir(parents=True, exist_ok=True)
@@ -68,8 +68,10 @@ def cmd_init(args: argparse.Namespace) -> int:
         target = directory / template.name
         if not target.exists():
             shutil.copyfile(template, target)
-    state = read_yaml(directory / "state.yaml", {})
-    state.update(key=key, kind=args.kind, repos=[{"path": str(repo), "branch": branch}])
+    existing = {k: v for k, v in read_yaml(directory / "state.yaml", {}).items() if v is not None}
+    state = {**read_yaml(TEMPLATES / "state.yaml", {}), **existing}
+    here = {"path": str(repo), "branch": branch}
+    state.update(key=key, kind=args.kind, repos=[*[r for r in state.get("repos", []) if r != here], here])
     write_yaml(directory / "state.yaml", state)
     print(json.dumps({"key": key, "dir": str(directory)}))
     return 0

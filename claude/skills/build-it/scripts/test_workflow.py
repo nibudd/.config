@@ -313,3 +313,13 @@ def test_cli_set(tmp_path, repo):
     assert bi(work, "set", key, "waiting_on", "Q01").returncode == 0
     state = yaml.safe_load((work / key / "state.yaml").read_text())
     assert (state["tier"], state["waiting_on"]) == ("high", "Q01")
+
+
+def test_cli_init_adopts_a_state_file_without_a_state(tmp_path, repo):
+    work = tmp_path / "work"
+    task = work / "platform_PROG-1013_port-metrics"
+    task.mkdir(parents=True)
+    (task / "state.yaml").write_text(yaml.safe_dump({"state": None, "prs": [{"number": 7}]}))
+    assert bi(work, "init", "--repo", str(repo)).returncode == 0
+    state = yaml.safe_load((task / "state.yaml").read_text())
+    assert (state["state"], state["prs"]) == ("requirements", [{"number": 7}])

@@ -25,7 +25,7 @@ $ARGUMENTS
 ### 2. First round
 
 1. Read the target completely.
-2. Read the context that the target must agree with: the worklog `## Decisions`, the ticket, and any facts summary that you gave me in this session. For prose, this context is the source of truth for the facts.
+2. Read the context that the target must agree with: `~/.claude-work/<key>/decisions.yaml` (or an old task's worklog `## Decisions`), the ticket, and any facts summary that you gave me in this session. For prose, this context is the source of truth for the facts.
 3. Find the problems. For code, look for bugs, missed cases, missing tests, and conflicts with the design. For prose, look for missing facts, wrong facts, a changed meaning, and text that a reader cannot follow.
 4. Write the findings file in the format below. Number the findings `1`, `2`, `3`, and so on. Every finding starts with status `open`.
 
