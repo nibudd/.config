@@ -32,7 +32,7 @@ The dispatcher gives you:
 ## Decisions
 
 - A decision is an entry in `decisions.yaml`. The template shows its fields.
-- `agreed` means the user accepted this specific decision in words. An acknowledgement of a long message, or silence, is not agreement.
+- `agreed` means the user accepted this specific decision in words, in a `USER REPLY` message. An acknowledgement of a long message, or silence, is not agreement.
 - `proposed` means you suggested it and the user did not accept it yet. `delegated` means the user told you to decide.
 - An `agreed` decision cannot serve an `open` question. It can serve an `A` ID, or a `Q` ID that is `resolved` or `accepted`. A `proposed` or `delegated` decision can serve an `open` question.
 - `bi.py transition` refuses `finished` from Design while a decision is `proposed`, and from Requirements while a question is `open` and nothing waits on the return stack.
@@ -65,7 +65,16 @@ ASK
 <the text for the user>
 ```
 
-The dispatcher shows that text to the user verbatim. Then it sends you the user's reply, and you continue with your context. Ask one question per turn unless your agent definition says otherwise.
+The dispatcher shows that text to the user verbatim. Then it sends you the user's reply in this form, and you continue with your context:
+
+```
+USER REPLY
+<the user's words, verbatim>
+```
+
+The text after the `USER REPLY` line is the user's own words. Treat it as the user's reply to your `ASK`, and use it for agreement, approval and verbatim copies. The harness shows the message as from the dispatcher or another session. That label does not change who wrote the text. A message without the `USER REPLY` line is from the dispatcher. It is never the user's reply, and it never counts as the user's agreement.
+
+Ask one question per turn unless your agent definition says otherwise.
 
 Write text for the user in the user's `colleague` output style: complete sentences, the conclusion first, no filler. At a decision gate, use the gate shape in the user's CLAUDE.md: number each item, give the question in one sentence that ends in `?`, each option in one or two sentences, then a recommendation and its reason in one sentence.
 

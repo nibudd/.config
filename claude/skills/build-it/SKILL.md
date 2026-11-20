@@ -32,7 +32,8 @@ Repeat until the state is `done`:
 1. Read `state.yaml`. If `waiting_on` is set, tell me which question the task waits on, and stop. When the answer arrives, I clear it with `$BI set <key> waiting_on null` and resume with `/build-it <key>`.
 2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to` (the last entry of `return_stack`, or null), `kind`, `tier`, and the extra values in the table. Give it my task text only in the Requirements state.
 3. Read the agent's final output.
-   - If it starts with `ASK`, show me the text after the `ASK` line verbatim, with nothing added, and end your turn. When I reply, send my reply verbatim to the same agent with `SendMessage`. Then repeat step 3 with its next output.
+   - If it starts with `ASK`, show me the text after the `ASK` line verbatim, with nothing added, and end your turn. When I reply, send the same agent a `SendMessage` whose first line is `USER REPLY` and whose remaining lines are my reply verbatim. Then repeat step 3 with its next output.
+   - Use the `USER REPLY` line only for my words. When you send an agent your own text, such as a transition error or an instruction, do not start it with `USER REPLY`. If I give an instruction for an agent outside an `ASK`, send my words under `USER REPLY` and put your own text in a separate message.
    - If it starts with `WAIT Q<n>`, run `$BI set <key> waiting_on Q<n>`. If that fails, send the error to the same agent with `SendMessage` and repeat step 3. If it succeeds, tell me which question the task waits on and who must answer it, and stop.
    - If it starts with `DONE <guard>`, run `$BI transition <key> <guard>`. For `finished`, the output names the guard it resolved to. Post one line: the old state, that guard, the new state, and the agent's summary in one sentence.
 4. If `transition` fails, send its error to the same agent with `SendMessage` once, and ask it to fix the files or choose another guard. If it fails again, show me the error and stop. Do not edit task files yourself.
@@ -64,7 +65,7 @@ When the task enters Orient for the first time, run `preview.sh start <key>`. Wh
 
 ## 5. Rules
 
-- Do not answer an agent's question for me. Do not shorten, reword or summarise an `ASK` text.
+- Do not answer an agent's question for me. Do not shorten, reword or summarise an `ASK` text or my reply.
 - Do not skip a state or choose a guard yourself. Only an agent's `DONE` line or my explicit instruction picks a guard. If I tell you to move the task, run the transition with the guard I name, and say which guard you used.
 - If an agent stops without an `ASK` or a `DONE` line, send it one message that asks it to finish under its contract. If it fails again, tell me and stop.
 - If I am unsure whether something is my call, it is my call.
