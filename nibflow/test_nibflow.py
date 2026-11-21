@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from actions import Action, Open, Refusal, Refuse, Select, Window, decide
 from layout import LAYOUTS, Layout, Side
 from lookup import Repo, Task, branch_from_git_output, find_tasks, match, work_root
 
@@ -206,3 +207,166 @@ def test_find_tasks_skips_bad_file(tmp_path: Path, capsys: pytest.CaptureFixture
 )
 def test_work_root(environ: dict[str, str], expected: Path) -> None:
     assert work_root(environ) == expected
+
+
+NIBFLOW_DIR = Path("/opt/nibflow")
+LARGE = Layout(name="large", claude_side=Side.RIGHT, claude_percent=40)
+
+
+@pytest.fixture
+def work(tmp_path: Path, repo: Path) -> dict[str, Any]:
+    gone = tmp_path / "gone"
+    tasks = [
+        Task.from_state(tmp_path / "A-1", {"repos": [repo_entry(repo, "feature")]}),
+        Task.from_state(tmp_path / "B-2", {"repos": [repo_entry(repo, "shared")]}),
+        Task.from_state(tmp_path / "C-3", {"repos": [repo_entry(repo, "shared")]}),
+        Task.from_state(tmp_path / "D-4", {"repos": [repo_entry(gone, "lost")]}),
+    ]
+    return {"repo": repo, "tasks": tasks}
+
+
+def decide_in(work: dict[str, Any], **overrides: Any) -> Action:
+    inputs: dict[str, Any] = {
+        "in_tmux": True,
+        "toplevel": work["repo"],
+        "branch": "feature",
+        "key": None,
+        "tasks": work["tasks"],
+        "windows": [],
+        "layout": LARGE,
+        "nibflow_dir": NIBFLOW_DIR,
+    }
+    return decide(**(inputs | overrides))
+
+
+@pytest.mark.parametrize(
+    ("overrides", "refusal", "details"),
+    [
+        pytest.param({"in_tmux": False}, Refusal.NOT_IN_TMUX, (), id="not in tmux"),
+        pytest.param({"in_tmux": False, "key": "A-1"}, Refusal.NOT_IN_TMUX, (), id="not in tmux with key"),
+        pytest.param({"branch": "nothing"}, Refusal.NO_MATCH, (), id="no match"),
+        pytest.param({"branch": "shared"}, Refusal.MANY_MATCHES, ("B-2", "C-3"), id="more than one match"),
+        pytest.param({"toplevel": None, "branch": None}, Refusal.NO_REPO, (), id="outside git"),
+        pytest.param({"branch": None}, Refusal.NO_REPO, (), id="detached head"),
+        pytest.param({"key": "Z-9"}, Refusal.UNKNOWN_KEY, ("Z-9",), id="key with no state"),
+        pytest.param({"key": "D-4"}, Refusal.MISSING_START, ("gone",), id="start directory missing"),
+    ],
+)
+def test_refusals(work: dict[str, Any], overrides: dict[str, Any], refusal: Refusal, details: tuple[str, ...]) -> None:
+    action = decide_in(work, **overrides)
+
+    assert isinstance(action, Refuse)
+    shown = tuple(Path(d).name if refusal is Refusal.MISSING_START else d for d in action.details)
+    assert (action.refusal, shown, action.exit_code, action.tmux_invocations) == (refusal, details, 1, [])
+
+
+def test_refusal_message_lists_matching_keys(work: dict[str, Any]) -> None:
+    message = decide_in(work, branch="shared").message
+
+    assert "B-2" in message and "C-3" in message
+
+
+@pytest.mark.parametrize(
+    ("overrides", "other_key"),
+    [
+        pytest.param({}, None, id="found task is the window task"),
+        pytest.param({"key": "A-1"}, None, id="given key is the window task"),
+        pytest.param({"key": "B-2"}, "B-2", id="given key differs"),
+        pytest.param({"key": "Z-9"}, "Z-9", id="given key has no state"),
+        pytest.param({"toplevel": None, "branch": None}, None, id="outside git"),
+        pytest.param({"branch": "nothing"}, None, id="no match"),
+        pytest.param({"branch": "shared"}, None, id="more than one match"),
+        pytest.param({"branch": "lost", "toplevel": Path("/elsewhere")}, None, id="other repo no match"),
+    ],
+)
+def test_select_note(work: dict[str, Any], overrides: dict[str, Any], other_key: str | None) -> None:
+    window = Window(id="@7", task="A-1")
+    windows = [Window(id="@1", task=None), window]
+
+    action = decide_in(work, windows=windows, **overrides)
+
+    assert action == Select(window, other_key)
+    assert (action.tmux_invocations, action.exit_code) == ([["select-window", "-t", "@7"]], 0)
+    assert bool(action.message) is (other_key is not None)
+
+
+def test_select_found_task_differs(work: dict[str, Any]) -> None:
+    window = Window(id="@7", task="B-2")
+
+    assert decide_in(work, windows=[window]) == Select(window, "A-1")
+
+
+def test_window_without_task_is_not_selected(work: dict[str, Any]) -> None:
+    assert isinstance(decide_in(work, windows=[Window(id="@1", task=None)]), Open)
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        pytest.param("@3\tA-1\n", Window("@3", "A-1"), id="task"),
+        pytest.param("@3\t\n", Window("@3", None), id="empty task"),
+        pytest.param("@3\t", Window("@3", None), id="empty task no newline"),
+        pytest.param("@12\tteam_feature-x", Window("@12", "team_feature-x"), id="non-ticket key"),
+    ],
+)
+def test_window_from_list_windows_line(line: str, expected: Window) -> None:
+    assert Window.from_list_windows_line(line) == expected
+
+
+@pytest.mark.parametrize(
+    ("side", "flags"),
+    [(Side.RIGHT, "-hbd"), (Side.LEFT, "-hd")],
+)
+def test_open_arguments(work: dict[str, Any], side: Side, flags: str) -> None:
+    layout = Layout(name="large", claude_side=side, claude_percent=40)
+    start = str(work["repo"])
+
+    action = decide_in(work, layout=layout)
+
+    assert isinstance(action, Open)
+    assert (action.message, action.exit_code) == ("", 0)
+    assert action.tmux_invocations == [
+        [
+            "new-window", "-n", "nibflow", "-c", start, "claude; exec $SHELL", ";",
+            "set-option", "-w", "@nibflow_task", "A-1", ";",
+            "set-option", "-w", "@nibflow_layout", "large", ";",
+            "split-window", flags, "-l", "60%", "-c", start,
+            "nvim -c 'set rtp+=/opt/nibflow' -c 'lua require('\"'\"'nibflow'\"'\"').start()'; exec $SHELL",
+        ]
+    ]  # fmt: skip
+
+
+def test_open_by_key_from_anywhere(work: dict[str, Any]) -> None:
+    action = decide_in(work, toplevel=None, branch=None, key="A-1")
+
+    assert isinstance(action, Open) and action.task.key == "A-1"
+
+
+def test_open_sets_options_before_split(work: dict[str, Any]) -> None:
+    (invocation,) = decide_in(work).tmux_invocations
+    commands = [part[0] for part in split_chain(invocation)]
+
+    assert commands == ["new-window", "set-option", "set-option", "split-window"]
+
+
+def split_chain(invocation: list[str]) -> list[list[str]]:
+    chain: list[list[str]] = [[]]
+    for argument in invocation:
+        if argument == ";":
+            chain.append([])
+        else:
+            chain[-1].append(argument)
+    return chain
+
+
+@pytest.mark.parametrize("action", ["open", "select", "refuse"])
+def test_no_status_option(work: dict[str, Any], action: str) -> None:
+    overrides: dict[str, Any] = {
+        "open": {},
+        "select": {"windows": [Window("@7", "A-1")]},
+        "refuse": {"branch": "nothing"},
+    }[action]
+
+    arguments = [a for invocation in decide_in(work, **overrides).tmux_invocations for a in invocation]
+
+    assert not [a for a in arguments if a.startswith("status")]
