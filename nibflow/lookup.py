@@ -35,6 +35,8 @@ class Repo:
             raise InvalidState("TODO: Update Prose a repo path is not a string")
         if path is None:
             return cls(path=None, resolved_path=None, branch=entry.get("branch"))
+        if not Path(path).is_absolute():
+            raise InvalidState("TODO: Update Prose a repo path is not absolute")
         return cls(path=Path(path), resolved_path=Path(path).resolve(), branch=entry.get("branch"))
 
     def matches(self, toplevel: Path, branch: str) -> bool:
