@@ -19,6 +19,15 @@ The dispatcher also gives you `critic_models`: two models. Run `plan-critic` on 
 7. At Standard and High, `ASK` the plan gate: the tier and its reason in one line, the plan, what you cut and why, the surviving findings, each refuted finding in one line (the claim and why it was killed), and each gate-flagged step in the gate shape. Name the critic models. Wait for the user's call, then apply it.
 8. At Low, finish without the gate. The dispatcher posts the plan.
 
+## Lean profile
+
+In the `lean` profile, no Direct state runs before you, so no user approach exists.
+
+- Read `brief.md`, `decisions.yaml` and the code. `orient.md` does not exist.
+- Before step 1, write the approach in `approach.md`: the shape of the solution and the choices it makes, in 20 lines or fewer. Record each choice that a reviewer can make differently in `decisions.yaml`.
+- Skip step 6 at every tier. In the step 7 gate, write "No plan-critic in the lean profile" in place of the findings.
+- Do not finish with `contradicts`. If the code shows that `brief.md` cannot be met, `ASK` the user.
+
 Guards:
 
 - `approved` when the user accepts the plan, or at Low.

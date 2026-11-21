@@ -76,11 +76,13 @@ def test_tier_floor(paths, expected):
     assert workflow.tier_floor(paths, workflow.DEFAULT_OWNED_PATHS, glob_match) == expected
 
 
-@pytest.mark.parametrize(("source", "guard"), list(workflow.TRANSITIONS))
-def test_every_transition_lands_in_a_known_state(source, guard):
-    state = {"state": source, "return_stack": ["design"], "tier": "low", "steps_since_gate": 0}
+@pytest.mark.parametrize(
+    ("profile", "source", "guard"), [(p, s, g) for p, table in workflow.PROFILE_TRANSITIONS.items() for s, g in table]
+)
+def test_every_transition_lands_in_a_state_of_its_profile(profile, source, guard):
+    state = {"state": source, "profile": profile, "return_stack": ["design"], "tier": "low", "steps_since_gate": 0}
     result = workflow.transition(state, guard)
-    assert result.state["state"] in workflow.STATES
+    assert result.state["state"] in workflow.profile_states(profile)
     assert result.state["log"][-1] == {"from": source, "guard": guard, "to": result.state["state"]}
 
 
@@ -104,6 +106,33 @@ def test_every_transition_lands_in_a_known_state(source, guard):
 def test_return_stack(source, guard, stack, expected_state, expected_stack):
     result = workflow.transition({"state": source, "return_stack": stack}, guard)
     assert (result.state["state"], result.state["return_stack"]) == (expected_state, expected_stack)
+
+
+@pytest.mark.parametrize(
+    ("source", "guard", "expected"),
+    [
+        ("requirements", "ready", "plan"),
+        ("design", "decided", "plan"),
+        ("design", "approach_changed", "plan"),
+        ("implement", "contradicts", "plan"),
+        ("fix", "fixed", "wrap"),
+    ],
+)
+def test_lean_skips_orient_direct_and_the_second_review(source, guard, expected):
+    assert workflow.transition({"state": source, "profile": "lean"}, guard).state["state"] == expected
+
+
+@pytest.mark.parametrize(
+    ("source", "guard"), [("design", "gap"), ("plan", "contradicts"), ("fix", "clean"), ("fix", "survives")]
+)
+def test_lean_rejects_guards_into_skipped_states(source, guard):
+    with pytest.raises(TransitionError, match="no guard"):
+        workflow.transition({"state": source, "profile": "lean"}, guard)
+
+
+@pytest.mark.parametrize(("profile", "skipped"), [("full", set()), ("lean", {"orient", "direct"})])
+def test_profile_states(profile, skipped):
+    assert workflow.profile_states(profile) == set(workflow.STATES) - skipped
 
 
 def test_nested_return_comes_back_to_implement():
@@ -247,6 +276,11 @@ def test_review_duplicate_findings():
         ({"state": "design", "waiting_on": "Q01"}, []),
         ({"state": "design", "waiting_on": "Q02"}, ["state.yaml: waiting_on Q02 is not an open question"]),
         ({"state": "design", "waiting_on": "Q09"}, ["state.yaml: waiting_on Q09 is not an open question"]),
+        ({"state": "orient", "profile": "full"}, []),
+        ({"state": "plan", "profile": "lean"}, []),
+        ({"state": "orient", "profile": "lean"}, ["state.yaml: state 'orient' is not in the lean profile"]),
+        ({"state": "direct", "profile": "lean"}, ["state.yaml: state 'direct' is not in the lean profile"]),
+        ({"state": "plan", "profile": "quick"}, ["state.yaml: profile is 'quick'"]),
     ],
 )
 def test_state_problems(state, expected):
@@ -317,6 +351,8 @@ def test_cli_baseline(tmp_path, repo):
     [
         *[("kind", kind, None) for kind in workflow.KINDS],
         *[("tier", tier, None) for tier in workflow.TIERS],
+        *[("profile", name, None) for name in workflow.PROFILES],
+        ("profile", "quick", "profile must be one of"),
         ("waiting_on", "Q01", None),
         ("waiting_on", None, None),
         ("kind", "chore", "kind must be one of"),
@@ -330,6 +366,13 @@ def test_set_field(name, value, error):
             workflow.set_field({"state": "plan"}, name, value)
     else:
         assert workflow.set_field({"state": "plan"}, name, value)[name] == value
+
+
+def test_cli_init_sets_the_profile(tmp_path, repo):
+    work = tmp_path / "work"
+    key = json.loads(bi(work, "init", "--repo", str(repo), "--profile", "lean").stdout)["key"]
+    assert yaml.safe_load((work / key / "state.yaml").read_text())["profile"] == "lean"
+    assert json.loads(bi(work, "transition", key, "finished").stdout)["state"] == "plan"
 
 
 def test_cli_set(tmp_path, repo):
@@ -394,8 +437,8 @@ def agent_guards() -> set[str]:
 
 
 def test_agent_guards_match_the_transition_table():
-    table = {g for _, g in workflow.TRANSITIONS}
-    resolved_by_script = {"ready", "understood", "decided", "return", "next_step"}
+    table = {g for t in workflow.PROFILE_TRANSITIONS.values() for _, g in t}
+    resolved_by_script = {"ready", "understood", "decided", "return", "next_step", "fixed"}
     dispatcher_only = {"summarized"}
     assert agent_guards() == (table - resolved_by_script - dispatcher_only) | {workflow.FINISHED}
 
@@ -468,6 +511,9 @@ def test_cli_reports_invalid_yaml(tmp_path, repo):
         ({"state": "design", "return_stack": ["implement"]}, [], "return"),
         ({"state": "implement"}, [Plan({"steps": [step(1, status="done", commit="abc"), step(2)]})], "next_step"),
         ({"state": "implement"}, [Plan({"steps": [step(1, status="done", commit="abc")]})], "done"),
+        ({"state": "requirements", "profile": "lean", "return_stack": []}, [], "ready"),
+        ({"state": "design", "profile": "lean", "return_stack": []}, [], "decided"),
+        ({"state": "fix", "profile": "lean", "return_stack": []}, [], "fixed"),
     ],
 )
 def test_finished_resolves_from_the_state(state, files, expected):

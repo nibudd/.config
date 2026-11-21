@@ -95,7 +95,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     existing = {k: v for k, v in read_yaml(directory / "state.yaml", {}).items() if v is not None}
     state = {**read_yaml(TEMPLATES / "state.yaml", {}), **existing}
     here = {"path": str(repo), "branch": branch}
-    state.update(key=key, kind=args.kind, repos=[*[r for r in state.get("repos", []) if r != here], here])
+    state.update(key=key, kind=args.kind, profile=args.profile, repos=[*[r for r in state.get("repos", []) if r != here], here])
     write_yaml(directory / "state.yaml", state)
     print(json.dumps({"key": key, "dir": str(directory)}))
     return 0
@@ -195,6 +195,7 @@ def main() -> int:
     init.add_argument("--repo", default=".")
     init.add_argument("--ticket")
     init.add_argument("--kind", choices=workflow.KINDS)
+    init.add_argument("--profile", choices=workflow.PROFILES)
     init.set_defaults(func=cmd_init)
     for name, func in (("validate", cmd_validate), ("baseline", cmd_baseline), ("tier-floor", cmd_tier_floor)):
         p = sub.add_parser(name)

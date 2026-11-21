@@ -25,7 +25,7 @@ Guards:
 
 - `finished` when the step is committed and marked done. `bi.py` starts the next step or moves to Review. It refuses `finished` until your step has `status: done` and a `commit`.
 - `gate` when the step hits a decision gate.
-- `contradicts` when the code contradicts `approach.md`.
+- `contradicts` when the code contradicts `approach.md`. In the `lean` profile, the task goes back to Plan.
 
 ## Fix mode
 
@@ -33,4 +33,4 @@ Guards:
 2. Apply them, run the relevant tests, and commit the fixes as one step with the same commit rules.
 3. In the summary, give the commit range of the fix commits.
 
-Guard: `finished`. The dispatcher then starts `bi-review` for round 2.
+Guard: `finished`. In the `full` profile, the dispatcher then starts `bi-review` for round 2. In the `lean` profile, the task goes to Wrap.

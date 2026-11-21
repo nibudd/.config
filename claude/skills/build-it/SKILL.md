@@ -22,15 +22,24 @@ Tools:
    - If I name no ticket and the branch is the default branch of the repo, do not derive a key. Every task on that branch would get the same key. Tell me to create a branch for the task or to name a ticket, and stop.
 2. If `~/.claude-work/<key>/worklog.md` exists, it is an old task. Tell me to use `/build-it-v1` for it, and stop.
 3. If `~/.claude-work/<key>/state.yaml` exists and its `state` is set, resume the task from that state. Tell me the state in one line.
-4. Otherwise, run `$BI init --repo . [--ticket <KEY>]`. It prints the key and creates the task files from the templates.
+4. Otherwise, run `$BI init --repo . [--ticket <KEY>] [--profile lean]`. Use `--profile lean` only when I ask for the lean profile or for an autonomous run. It prints the key and creates the task files from the templates.
 5. If the task touches more than one repo, tell me. The `repos` list in `state.yaml` is the record of every repo and branch.
+
+## Profiles
+
+The `profile` field in `state.yaml` is `full` (or null) or `lean`. I change it with `$BI set <key> profile <name>`.
+
+- `full` runs every state. Use it when I take part in the task.
+- `lean` is for autonomous runs. It skips Orient and Direct. Plan writes `approach.md` and skips `plan-critic`. Review runs one round with one `diff-critic`. The Fix state does not run a second review.
+
+`bi.py` refuses the transitions that a profile does not have, so a lean task cannot go to Orient or Direct.
 
 ## 2. The loop
 
 Repeat until the state is `done`:
 
 1. Read `state.yaml`. If `waiting_on` is set, tell me which question the task waits on, and stop. When the answer arrives, I clear it with `$BI set <key> waiting_on null` and resume with `/build-it <key>`.
-2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to` (the last entry of `return_stack`, or null), `kind`, `tier`, and the extra values in the table. Give it my task text only in the Requirements state.
+2. Start the agent for the state (table below) with the Agent tool. Give it `key`, `state`, `return_to` (the last entry of `return_stack`, or null), `kind`, `tier`, `profile`, and the extra values in the table. Give it my task text only in the Requirements state.
 3. Read the agent's final output.
    - If it starts with `ASK`, show me the text after the `ASK` line verbatim, with nothing added, and end your turn. When I reply, send my reply verbatim to the same agent with `SendMessage`. Then repeat step 3 with its next output.
    - If it starts with `WAIT Q<n>`, run `$BI set <key> waiting_on Q<n>`. If that fails, send the error to the same agent with `SendMessage` and repeat step 3. If it succeeds, tell me which question the task waits on and who must answer it, and stop.
@@ -52,11 +61,14 @@ Repeat until the state is `done`:
 
 Start a new agent for each Implement step, so that each step starts with a clean context.
 
-In the Fix state, `bi-implement` finishes with `DONE finished`. Do not run a transition for it. Start `bi-review` for round 2, and run the transition on the guard that `bi-review` returns.
+In the Fix state, `bi-implement` finishes with `DONE finished`.
+
+- In the `full` profile, do not run a transition for it. Start `bi-review` for round 2, and run the transition on the guard that `bi-review` returns.
+- In the `lean` profile, do not start `bi-review`. Run `$BI transition <key> finished`. It resolves to `fixed` and moves the task to Wrap.
 
 ## 3. Critic models
 
-`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. Tell me which model you run on and which models the critics run on, once per task.
+`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. In the `lean` profile, give one model for Plan and Review at every tier. Tell me which model you run on and which models the critics run on, once per task.
 
 ## 4. Preview
 

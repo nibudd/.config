@@ -10,6 +10,7 @@ The dispatcher gives you:
 - `state`: the state you run in. One agent can serve more than one state.
 - `return_to`: the state the task goes back to after your state, or `null`. It is the last entry of `return_stack` in `state.yaml`.
 - `kind` and `tier`, when they are set.
+- `profile`: `full` or `lean`. Null means `full`. Your agent definition says what changes in `lean`.
 - Other values that your agent definition names, for example a mode or critic models.
 
 ## Files and IDs
@@ -37,6 +38,7 @@ The dispatcher gives you:
 - An `agreed` decision cannot serve an `open` question. It can serve an `A` ID, or a `Q` ID that is `resolved` or `accepted`. A `proposed` or `delegated` decision can serve an `open` question.
 - `bi.py transition` refuses `finished` from Design while a decision is `proposed`, and from Requirements while a question is `open` and nothing waits on the return stack.
 - Record what was rejected and why, in `rejected`.
+- In the `lean` profile, the user delegated the decisions. Give each new decision the status `delegated`. Record a decision only when a reviewer can choose differently. Do not record a choice that the brief, the code or a convention forces. Keep each entry to its choice, one reason, and its `rejected` options.
 
 ## Waiting
 

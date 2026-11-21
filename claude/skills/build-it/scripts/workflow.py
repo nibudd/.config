@@ -20,17 +20,16 @@ STATES = (
 )
 KINDS = ("feature", "bug", "recovery", "foundation")
 TIERS = ("low", "standard", "high")
+PROFILES = ("full", "lean")
 DECISION_STATUSES = ("agreed", "proposed", "delegated")
 QUESTION_STATUSES = ("open", "resolved", "accepted")
 CHECK_KINDS = ("command", "new_test", "planned", "none")
 BASELINES = ("pass", "fail", "new", "planned")
 STEPS_BEFORE_SUMMARY = 5
 STEP_STATUSES = ("todo", "done")
-SETTABLE = {"kind": KINDS, "tier": TIERS, "waiting_on": None}
+SETTABLE = {"kind": KINDS, "tier": TIERS, "profile": PROFILES, "waiting_on": None}
 
 FINISHED = "finished"
-# The guard that "finished" resolves to when the return stack is empty.
-FORWARD = {"requirements": "ready", "orient": "understood", "design": "decided"}
 
 RETURN = "<return>"
 
@@ -62,6 +61,37 @@ TRANSITIONS: dict[tuple[str, str], tuple[str, str | None]] = {
     ("wrap", "fix_carried"): ("fix", None),
     ("wrap", "suite_fails"): ("implement", None),
     ("wrap", "done"): ("done", None),
+}
+
+# The lean profile serves autonomous runs: no Orient or Direct, and one review round with no re-review of the fix.
+LEAN_TRANSITIONS: dict[tuple[str, str], tuple[str, str | None]] = {
+    ("requirements", "ready"): ("plan", None),
+    ("requirements", "return"): (RETURN, None),
+    ("design", "decided"): ("plan", None),
+    ("design", "return"): (RETURN, None),
+    ("design", "approach_changed"): ("plan", None),
+    ("design", "new_criterion"): ("requirements", "design"),
+    ("plan", "approved"): ("implement", None),
+    ("implement", "next_step"): ("implement", None),
+    ("implement", "summarized"): ("implement", None),
+    ("implement", "done"): ("review", None),
+    ("implement", "gate"): ("design", "implement"),
+    ("implement", "contradicts"): ("plan", None),
+    ("review", "approved"): ("fix", None),
+    ("review", "clean"): ("wrap", None),
+    ("review", "carried"): ("wrap", None),
+    ("fix", "fixed"): ("wrap", None),
+    ("wrap", "fix_carried"): ("fix", None),
+    ("wrap", "suite_fails"): ("implement", None),
+    ("wrap", "done"): ("done", None),
+}
+
+PROFILE_TRANSITIONS = {"full": TRANSITIONS, "lean": LEAN_TRANSITIONS}
+
+# The guard that "finished" resolves to when the return stack is empty.
+FORWARD = {
+    "full": {"requirements": "ready", "orient": "understood", "design": "decided"},
+    "lean": {"requirements": "ready", "design": "decided", "fix": "fixed"},
 }
 
 DEFAULT_OWNED_PATHS = (
@@ -118,6 +148,15 @@ class Transition:
     summarize: bool
 
 
+def profile(state: dict[str, Any]) -> str:
+    return state.get("profile") or "full"
+
+
+def profile_states(name: str) -> set[str]:
+    table = PROFILE_TRANSITIONS[name]
+    return {s for s, _ in table} | {t for t, _ in table.values() if t != RETURN}
+
+
 def return_to(state: dict[str, Any]) -> str | None:
     stack = state.get("return_stack") or []
     return stack[-1] if stack else None
@@ -129,9 +168,10 @@ def resolve_guard(state: dict[str, Any], guard: str, files: Iterable[TaskFile]) 
     current = state.get("state")
     if current == "implement":
         return "next_step" if any(f.todo_steps() for f in files) else "done"
-    if current not in FORWARD:
+    forward = FORWARD[profile(state)]
+    if current not in forward:
         raise TransitionError(f"guard 'finished' does not apply to {current!r}; name the guard")
-    return "return" if return_to(state) else FORWARD[current]
+    return "return" if return_to(state) else forward[current]
 
 
 def first_todo_step(files: Iterable[TaskFile]) -> int | None:
@@ -141,10 +181,11 @@ def first_todo_step(files: Iterable[TaskFile]) -> int | None:
 
 def transition(state: dict[str, Any], guard: str) -> Transition:
     current = state["state"]
+    table = PROFILE_TRANSITIONS[profile(state)]
     try:
-        target, push = TRANSITIONS[(current, guard)]
+        target, push = table[(current, guard)]
     except KeyError:
-        allowed = sorted(g for s, g in TRANSITIONS if s == current)
+        allowed = sorted(g for s, g in table if s == current)
         raise TransitionError(f"no guard {guard!r} from {current!r}; allowed: {', '.join(allowed)}") from None
     if guard == "carried" and state.get("tier") != "low":
         raise TransitionError("findings are carried to the wrap only at the low tier")
@@ -341,9 +382,12 @@ class State(TaskFile):
 
     def problems(self, known: set[str], questions: dict[str, str]) -> list[str]:
         found = []
-        for name, allowed in (("state", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS))):
+        for name, allowed in (("state", (None, *STATES)), ("kind", (None, *KINDS)), ("tier", (None, *TIERS)), ("profile", (None, *PROFILES))):
             if self.data.get(name) not in allowed:
                 found.append(f"state.yaml: {name} is {self.data.get(name)!r}")
+        current = self.data.get("state")
+        if self.data.get("profile") in PROFILES and current in STATES and current not in profile_states(profile(self.data)):
+            found.append(f"state.yaml: state {current!r} is not in the {self.data['profile']} profile")
         found += [f"state.yaml: return_stack holds {s!r}" for s in self.data.get("return_stack") or [] if s not in STATES]
         waiting = self.data.get("waiting_on")
         if waiting and questions.get(waiting) != "open":

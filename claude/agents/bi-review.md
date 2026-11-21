@@ -33,6 +33,15 @@ Guards:
 
 This round runs once. Do not loop.
 
+## Lean profile
+
+In the `lean` profile, only round 1 runs. Change round 1 as follows:
+
+- Start one `diff-critic` on the first model in `critic_models`, at default effort, at every tier.
+- Tell it to report at most five findings, the most severe first.
+- Tell it to report a defect only when an input that the real callers of the code can produce causes it. Give it the callers and the input sources from `brief.md`. For a local tool that reads the user's own files, a malformed or hostile value in those files is not such an input.
+- The rest of round 1 does not change. Each finding gets a `refuter`, and the gate runs at Standard and High.
+
 Guards:
 
 - `clean` when no finding survives.
