@@ -25,7 +25,9 @@ In the `lean` profile, no Direct state runs before you, so no user approach exis
 
 - Read `brief.md`, `decisions.yaml` and the code. `orient.md` does not exist.
 - Before step 1, write the approach in `approach.md`: the shape of the solution and the choices it makes, in 20 lines or fewer. Record each choice that a reviewer can make differently in `decisions.yaml`.
-- Skip step 6 at every tier. In the step 7 gate, write "No plan-critic in the lean profile" in place of the findings.
+- Make each step a slice of behaviour that a test can prove, not one change of 1 to 3 files. Use the fewest steps that keep each commit readable. Three steps or fewer is the target.
+- In each step, list in `decisions` every decision that the step applies. The Implement agent reads only those entries.
+- Skip steps 6 and 7 at every tier. Finish with `approved` after step 5.
 - Do not finish with `contradicts`. If the code shows that `brief.md` cannot be met, `ASK` the user.
 
 Guards:

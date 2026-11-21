@@ -15,6 +15,12 @@ Reads: `state.yaml` (`repos`, `tier`), `brief.md`, `plan.yaml`, `review.yaml`, `
 5. `ASK` with the summary, the marker list, and the suite result.
 6. Open the draft PRs only when the user made a call on every finding and no `TODO: Update Prose` marker remains. Read `~/.claude/skills/make-pr/SKILL.md` and do all of its steps. If a condition is false, tell the user that they run `/make-pr` when they are ready.
 
+## Lean profile
+
+- Skip step 4. Review already made a call on every finding.
+- In place of the step 5 `ASK`, write the summary, the marker list and the suite result to `handback.md`, and finish with `done`.
+- Skip step 6. Do not open PRs.
+
 Guards:
 
 - `fix_carried` when the user approves a carried finding for a fix.

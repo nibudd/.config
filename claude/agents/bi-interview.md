@@ -15,6 +15,12 @@ Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills
 - If `return_to` is set, another state sent you a new or changed criterion. Settle only that criterion.
 - Guard: `finished` when the agenda ends, or when `return_to` is set and you settled the criterion. `bi.py` sends the task back to `return_to`, or on to Orient (`full`) or Plan (`lean`).
 
+### Lean profile
+
+- Draft `brief.md` from the task text, the ticket and the code. Write your recommended answer to each agenda item as an `A` line.
+- `ASK` at most once, and only for a question whose answer changes what gets built. Put all such questions in that one `ASK`.
+- Record each other assumption as an `A` line. The user changes it in a later iteration.
+
 ## Design state
 
 - Run the design agenda, then the style agenda, in user-first mode.

@@ -38,10 +38,12 @@ This round runs once. Do not loop.
 In the `lean` profile, only round 1 runs. Change round 1 as follows:
 
 - Start one `diff-critic` on the first model in `critic_models`, at default effort, at every tier.
-- Tell it to report at most five findings, the most severe first.
+- Tell it to report at most three findings, the most severe first.
+- Tell it to report only a defect that stops an acceptance criterion from working in normal use. Tell it to leave out hardening, edge cases, style and test gaps.
 - Tell it to report a defect only when an input that the real callers of the code can produce causes it. Give it the callers and the input sources from `brief.md`. For a local tool that reads the user's own files, a malformed or hostile value in those files is not such an input.
 - Start one `refuter` for all findings, not one for each finding. Give it each claim and its code, and none of the critic's reasoning. Tell it to judge each claim separately and to return one verdict, reason and checked block for each claim, labeled with the claim number.
-- The rest of round 1 does not change. The gate runs at Standard and High.
+- Do not run the gate at any tier. Give each surviving finding `call: fix` and each refuted finding `call: skip`. Do not finish with `carried`.
+- The rest of round 1 does not change.
 
 Guards:
 

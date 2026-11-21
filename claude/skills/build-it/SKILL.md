@@ -30,7 +30,7 @@ Tools:
 The `profile` field in `state.yaml` is `full` (or null) or `lean`. I change it with `$BI set <key> profile <name>`.
 
 - `full` runs every state. Use it when I take part in the task.
-- `lean` is for autonomous runs. It skips Orient and Direct. Plan writes `approach.md` and skips `plan-critic`. Review runs one round with one `diff-critic` and one `refuter` for all findings. The Fix state does not run a second review. Implement never pauses for the five-step summary.
+- `lean` is for autonomous runs. It skips Orient and Direct. Plan writes `approach.md` and skips `plan-critic`. Review runs one round with one `diff-critic` and one `refuter` for all findings. The Fix state does not run a second review. Implement never pauses for the five-step summary. Plan and Review have no gate, and Wrap does not ask. Start `bi-implement` with `model: sonnet`. After Wrap, do not run a separate code review of the branch. The user reviews the prototype.
 
 `bi.py` refuses the transitions that a profile does not have, so a lean task cannot go to Orient or Direct.
 
@@ -70,7 +70,7 @@ In the Fix state, `bi-implement` finishes with `DONE finished`.
 
 ## 3. Critic models
 
-`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. In the `lean` profile, give no model for Plan, because `plan-critic` does not run, and one model for Review at every tier. Tell me which model you run on and which models the critics run on, once per task.
+`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. In the `lean` profile, give no model for Plan, because `plan-critic` does not run, and one model for Review at every tier. The Review model must not be Sonnet, because Sonnet writes the code. Tell me which model you run on and which models the critics run on, once per task.
 
 ## 4. Preview
 

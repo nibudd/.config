@@ -38,6 +38,7 @@ The dispatcher gives you:
 - An `agreed` decision cannot serve an `open` question. It can serve an `A` ID, or a `Q` ID that is `resolved` or `accepted`. A `proposed` or `delegated` decision can serve an `open` question.
 - `bi.py transition` refuses `finished` from Design while a decision is `proposed`, and from Requirements while a question is `open` and nothing waits on the return stack.
 - Record what was rejected and why, in `rejected`.
+- In the `lean` profile, the user wants a working prototype soon and will change it in later iterations. Choose the simplest design that meets the acceptance criteria. Do not harden the code against inputs outside normal use. Write a test for the main path of each acceptance criterion. Write an edge-case test only when a criterion names the edge case.
 - In the `lean` profile, the user delegated the decisions. Give each new decision the status `delegated`. Record a decision only when a reviewer can choose differently. Do not record a choice that the brief, the code or a convention forces. Keep each entry to its choice, one reason, and its `rejected` options.
 
 ## Waiting
