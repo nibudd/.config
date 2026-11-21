@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -370,3 +371,93 @@ def test_no_status_option(work: dict[str, Any], action: str) -> None:
     arguments = [a for invocation in decide_in(work, **overrides).tmux_invocations for a in invocation]
 
     assert not [a for a in arguments if a.startswith("status")]
+
+
+NVIM_SCRIPT = """
+local function check()
+  local layout = vim.json.decode(table.concat(vim.fn.readfile(vim.env.NIBFLOW_LAYOUT), "\\n"))
+  require("nibflow.layout").build(layout, vim.env.NIBFLOW_KEY)
+  local windows = {}
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    windows[tostring(win)] = {
+      width = vim.api.nvim_win_get_width(win),
+      height = vim.api.nvim_win_get_height(win),
+      text = table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(win), 0, -1, false), "\\n"),
+    }
+  end
+  vim.fn.writefile({ vim.json.encode({ layout = vim.fn.winlayout(), windows = windows }) }, vim.env.NIBFLOW_OUT)
+end
+local ok, err = xpcall(check, debug.traceback)
+if not ok then
+  io.stderr:write(err)
+  vim.cmd("cquit 1")
+end
+vim.cmd("qall!")
+"""
+
+SYNTHETIC_TREE: dict[str, Any] = {
+    "split": "col",
+    "children": [
+        {"view": "git"},
+        {"split": "row", "cells": 10, "children": [{"view": "files", "percent": 30}, {"view": "overview"}]},
+    ],
+}
+
+AXIS = {"row": "width", "col": "height"}
+
+
+def built_layout(tmp_path: Path, tree: dict[str, Any], key: str) -> dict[str, Any]:
+    layout_file, script, out = tmp_path / "layout.json", tmp_path / "check.lua", tmp_path / "out.json"
+    layout_file.write_text(json.dumps({"nvim": tree}))
+    script.write_text(NVIM_SCRIPT)
+    subprocess.run(
+        [
+            "nvim",
+            "--headless",
+            "--clean",
+            "--cmd",
+            f"set rtp+={LAYOUTS.parent} columns=160 lines=48",
+            "-c",
+            f"luafile {script}",
+        ],
+        check=True,
+        timeout=30,
+        env={**os.environ, "NIBFLOW_LAYOUT": str(layout_file), "NIBFLOW_OUT": str(out), "NIBFLOW_KEY": key},
+    )
+    return json.loads(out.read_text())
+
+
+def first_leaf(layout: list[Any]) -> str:
+    return str(layout[1]) if layout[0] == "leaf" else first_leaf(layout[1][0])
+
+
+def assert_matches(node: dict[str, Any], layout: list[Any], windows: dict[str, Any], key: str) -> None:
+    if "view" in node:
+        assert layout[0] == "leaf"
+        text = windows[str(layout[1])]["text"]
+        assert node["view"] in text and key in text
+        return
+    assert layout[0] == node["split"]
+    assert len(layout[1]) == len(node["children"])
+    dimension = AXIS[node["split"]]
+    sizes = [windows[first_leaf(child)][dimension] for child in layout[1]]
+    parent = sum(sizes) + len(sizes) - 1
+    for child, size in zip(node["children"], sizes):
+        if "cells" in child:
+            assert size == child["cells"]
+        if "percent" in child:
+            assert abs(size - parent * child["percent"] / 100) <= 1
+    for child, child_layout in zip(node["children"], layout[1]):
+        assert_matches(child, child_layout, windows, key)
+
+
+@pytest.mark.parametrize(
+    "tree",
+    [json.loads((LAYOUTS / f"{name}.json").read_text())["nvim"] for name in LAYOUT_NAMES] + [SYNTHETIC_TREE],
+    ids=[*LAYOUT_NAMES, "synthetic"],
+)
+def test_nvim_builder(tmp_path: Path, tree: dict[str, Any]) -> None:
+    key = "KEY-1"
+    built = built_layout(tmp_path, tree, key)
+
+    assert_matches(tree, built["layout"], built["windows"], key)
