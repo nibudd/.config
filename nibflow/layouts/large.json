@@ -1,0 +1,18 @@
+{
+  "tmux": {
+    "claude": { "side": "right", "percent": 40 }
+  },
+  "nvim": {
+    "split": "row",
+    "children": [
+      { "view": "overview", "cells": 20 },
+      {
+        "split": "col",
+        "children": [
+          { "view": "files", "percent": 60 },
+          { "view": "git" }
+        ]
+      }
+    ]
+  }
+}
