@@ -11,3 +11,6 @@ gauth() {
   echo '> gcloud auth login' && gcloud auth login
 }
 
+nibflow() {
+  "$HOME/.config/nibflow/nibflow" "$@"
+}
