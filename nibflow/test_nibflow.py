@@ -461,3 +461,21 @@ def test_nvim_builder(tmp_path: Path, tree: dict[str, Any]) -> None:
     built = built_layout(tmp_path, tree, key)
 
     assert_matches(tree, built["layout"], built["windows"], key)
+
+
+def test_entry_refuses_outside_tmux(tmp_path: Path) -> None:
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    environ = {name: value for name, value in os.environ.items() if not name.startswith("TMUX")}
+    environ |= {
+        "TMUX_TMPDIR": str(tmp_path / "tmux"),
+        "BI_WORK_ROOT": str(tmp_path / "work"),
+        "GIT_CEILING_DIRECTORIES": str(tmp_path),
+    }
+
+    result = subprocess.run(
+        [str(LAYOUTS.parent / "nibflow")], cwd=outside, env=environ, capture_output=True, text=True
+    )
+
+    assert (result.returncode, result.stdout) == (1, "")
+    assert result.stderr
