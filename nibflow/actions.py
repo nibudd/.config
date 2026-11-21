@@ -129,27 +129,54 @@ class Refuse(Action):
         return 1
 
 
-def resolve_task(toplevel: Path | None, branch: str | None, key: str | None, tasks: list[Task]) -> Task | Refuse:
+class Resolution(ABC):
+    @property
+    @abstractmethod
+    def wanted_key(self) -> str | None: ...
+
+    @abstractmethod
+    def to_action(self, layout: Layout, nibflow_dir: Path) -> Action: ...
+
+
+@dataclass(frozen=True)
+class Resolved(Resolution):
+    task: Task
+
+    @property
+    def wanted_key(self) -> str | None:
+        return self.task.key
+
+    def to_action(self, layout: Layout, nibflow_dir: Path) -> Action:
+        if not self.task.start_directory_exists:
+            return Refuse(Refusal.MISSING_START, (str(self.task.start_directory),))
+        return Open(self.task, layout, nibflow_dir)
+
+
+@dataclass(frozen=True)
+class Unresolved(Resolution):
+    refuse: Refuse
+    key: str | None = None
+
+    @property
+    def wanted_key(self) -> str | None:
+        return self.key
+
+    def to_action(self, layout: Layout, nibflow_dir: Path) -> Action:
+        return self.refuse
+
+
+def resolve_task(toplevel: Path | None, branch: str | None, key: str | None, tasks: list[Task]) -> Resolution:
     if key is not None:
         by_key = [task for task in tasks if task.key == key]
-        return by_key[0] if by_key else Refuse(Refusal.UNKNOWN_KEY, (key,))
+        return Resolved(by_key[0]) if by_key else Unresolved(Refuse(Refusal.UNKNOWN_KEY, (key,)), key)
     if toplevel is None or branch is None:
-        return Refuse(Refusal.NO_REPO)
+        return Unresolved(Refuse(Refusal.NO_REPO))
     found = match(tasks, toplevel, branch)
     if not found:
-        return Refuse(Refusal.NO_MATCH)
+        return Unresolved(Refuse(Refusal.NO_MATCH))
     if len(found) > 1:
-        return Refuse(Refusal.MANY_MATCHES, tuple(task.key for task in found))
-    return found[0]
-
-
-def wanted_key(toplevel: Path | None, branch: str | None, key: str | None, tasks: list[Task]) -> str | None:
-    if key is not None:
-        return key
-    if toplevel is None:
-        return None
-    found = match(tasks, toplevel, branch)
-    return found[0].key if len(found) == 1 else None
+        return Unresolved(Refuse(Refusal.MANY_MATCHES, tuple(task.key for task in found)))
+    return Resolved(found[0])
 
 
 def select_existing(window: Window, wanted: str | None) -> Select:
@@ -169,12 +196,8 @@ def decide(
 ) -> Action:
     if not in_tmux:
         return Refuse(Refusal.NOT_IN_TMUX)
+    resolution = resolve_task(toplevel, branch, key, tasks)
     existing = next((window for window in windows if window.task is not None), None)
     if existing is not None:
-        return select_existing(existing, wanted_key(toplevel, branch, key, tasks))
-    resolved = resolve_task(toplevel, branch, key, tasks)
-    if isinstance(resolved, Refuse):
-        return resolved
-    if not resolved.start_directory_exists:
-        return Refuse(Refusal.MISSING_START, (str(resolved.start_directory),))
-    return Open(resolved, layout, nibflow_dir)
+        return select_existing(existing, resolution.wanted_key)
+    return resolution.to_action(layout, nibflow_dir)

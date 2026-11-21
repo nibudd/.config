@@ -30,6 +30,8 @@ class Repo:
         if not isinstance(entry, dict):
             raise InvalidState("TODO: Update Prose a repos entry is not a mapping")
         path = entry.get("path")
+        if path is not None and not isinstance(path, str):
+            raise InvalidState("TODO: Update Prose a repo path is not a string")
         return cls(path=None if path is None else Path(path), branch=entry.get("branch"))
 
     def matches(self, toplevel: Path, branch: str) -> bool:
@@ -70,7 +72,7 @@ def find_tasks(root: Path) -> list[Task]:
     for state_file in sorted(root.glob("*/state.yaml")):
         try:
             tasks.append(Task.from_state(state_file.parent, yaml.safe_load(state_file.read_text())))
-        except (yaml.YAMLError, InvalidState) as error:
+        except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidState) as error:
             reason = " ".join(str(error).split())
             print(f"TODO: Update Prose nibflow: skipped {state_file}: {reason}", file=sys.stderr)
     return tasks

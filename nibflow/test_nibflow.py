@@ -61,10 +61,14 @@ def repo_entry(path: Path | str | None, branch: str | None) -> dict[str, Any]:
     return {"path": None if path is None else str(path), "branch": branch}
 
 
-def write_state(work_root: Path, key: str, text: str) -> Path:
+def write_state(work_root: Path, key: str, content: str | bytes) -> Path:
     directory = work_root / key
     directory.mkdir(parents=True)
-    (directory / "state.yaml").write_text(text)
+    state_file = directory / "state.yaml"
+    if isinstance(content, bytes):
+        state_file.write_bytes(content)
+    else:
+        state_file.write_text(content)
     return directory
 
 
@@ -187,14 +191,30 @@ def test_find_tasks_reads_each_state(tmp_path: Path) -> None:
         pytest.param("", id="empty"),
         pytest.param("repos: not-a-list\n", id="repos not a list"),
         pytest.param("repos:\n- just-a-string\n", id="repo entry not a mapping"),
+        pytest.param("repos:\n- path: 5\n  branch: main\n", id="repo path not a string"),
+        pytest.param("repos:\n- path: [a, b]\n", id="repo path a list"),
+        pytest.param(b"key: \xff\xfe\n", id="not utf-8"),
     ],
 )
-def test_find_tasks_skips_bad_file(tmp_path: Path, capsys: pytest.CaptureFixture[str], bad_text: str) -> None:
+def test_find_tasks_skips_bad_file(tmp_path: Path, capsys: pytest.CaptureFixture[str], bad_text: str | bytes) -> None:
     write_state(tmp_path, "A-1", "key: A-1\n")
     bad = write_state(tmp_path, "B-2", bad_text)
     write_state(tmp_path, "C-3", "key: C-3\n")
 
-    tasks = find_tasks(tmp_path)
+    assert_skipped_only(tmp_path, capsys, bad)
+
+
+def test_find_tasks_skips_unreadable_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    write_state(tmp_path, "A-1", "key: A-1\n")
+    bad = tmp_path / "B-2"
+    (bad / "state.yaml").mkdir(parents=True)
+    write_state(tmp_path, "C-3", "key: C-3\n")
+
+    assert_skipped_only(tmp_path, capsys, bad)
+
+
+def assert_skipped_only(root: Path, capsys: pytest.CaptureFixture[str], bad: Path) -> None:
+    tasks = find_tasks(root)
 
     assert [t.key for t in tasks] == ["A-1", "C-3"]
     warnings = capsys.readouterr().err.splitlines()
@@ -382,6 +402,8 @@ local function check()
     windows[tostring(win)] = {
       width = vim.api.nvim_win_get_width(win),
       height = vim.api.nvim_win_get_height(win),
+      fixwidth = vim.api.nvim_get_option_value("winfixwidth", { win = win }),
+      fixheight = vim.api.nvim_get_option_value("winfixheight", { win = win }),
       text = table.concat(vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(win), 0, -1, false), "\\n"),
     }
   end
@@ -431,11 +453,14 @@ def first_leaf(layout: list[Any]) -> str:
     return str(layout[1]) if layout[0] == "leaf" else first_leaf(layout[1][0])
 
 
-def assert_matches(node: dict[str, Any], layout: list[Any], windows: dict[str, Any], key: str) -> None:
+def assert_matches(
+    node: dict[str, Any], layout: list[Any], windows: dict[str, Any], key: str, fixed: frozenset[str] = frozenset()
+) -> None:
     if "view" in node:
         assert layout[0] == "leaf"
-        text = windows[str(layout[1])]["text"]
-        assert node["view"] in text and key in text
+        window = windows[str(layout[1])]
+        assert node["view"] in window["text"] and key in window["text"]
+        assert {dimension for dimension in AXIS.values() if window[f"fix{dimension}"]} == fixed
         return
     assert layout[0] == node["split"]
     assert len(layout[1]) == len(node["children"])
@@ -448,7 +473,8 @@ def assert_matches(node: dict[str, Any], layout: list[Any], windows: dict[str, A
         if "percent" in child:
             assert abs(size - parent * child["percent"] / 100) <= 1
     for child, child_layout in zip(node["children"], layout[1]):
-        assert_matches(child, child_layout, windows, key)
+        child_fixed = fixed | {dimension} if "cells" in child else fixed
+        assert_matches(child, child_layout, windows, key, child_fixed)
 
 
 @pytest.mark.parametrize(
@@ -477,5 +503,4 @@ def test_entry_refuses_outside_tmux(tmp_path: Path) -> None:
         [str(LAYOUTS.parent / "nibflow")], cwd=outside, env=environ, capture_output=True, text=True
     )
 
-    assert (result.returncode, result.stdout) == (1, "")
-    assert result.stderr
+    assert (result.returncode, result.stdout, result.stderr) == (1, "", Refuse(Refusal.NOT_IN_TMUX).message + "\n")
