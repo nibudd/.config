@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 from actions import Action, Open, Refusal, Refuse, Select, Window, decide
 from layout import LAYOUTS, Layout, Side
@@ -127,21 +128,25 @@ def test_match_any_repo_of_a_task(repo: Path, tmp_path: Path) -> None:
     assert [t.key for t in match(tasks, repo, "feature")] == ["A-1"]
 
 
-@pytest.mark.parametrize("linked_side", ["task", "query"])
-def test_match_resolves_symlinks(repo: Path, tmp_path: Path, linked_side: str) -> None:
-    link = tmp_path / "link"
-    link.symlink_to(repo)
-    entry_path, query_path = (link, repo) if linked_side == "task" else (repo, link)
-
-    assert [t.key for t in match([task("A-1", repo_entry(entry_path, "feature"))], query_path, "feature")] == ["A-1"]
+def git_toplevel_from(directory: Path) -> Path:
+    output = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], cwd=directory, capture_output=True, text=True, check=True
+    ).stdout
+    return Path(output.strip())
 
 
 def test_match_from_subdirectory(repo: Path) -> None:
-    toplevel = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"], cwd=repo / "src" / "deep", capture_output=True, text=True, check=True
-    ).stdout.strip()
+    toplevel = git_toplevel_from(repo / "src" / "deep")
 
-    assert [t.key for t in match([task("A-1", repo_entry(repo, "feature"))], Path(toplevel), "feature")] == ["A-1"]
+    assert [t.key for t in match([task("A-1", repo_entry(repo, "feature"))], toplevel, "feature")] == ["A-1"]
+
+
+def test_match_from_symlinked_directory(repo: Path, tmp_path: Path) -> None:
+    link = tmp_path / "link"
+    link.symlink_to(repo)
+    toplevel = git_toplevel_from(link / "src" / "deep")
+
+    assert [t.key for t in match([task("A-1", repo_entry(repo, "feature"))], toplevel, "feature")] == ["A-1"]
 
 
 @pytest.mark.parametrize(
@@ -180,41 +185,71 @@ def test_find_tasks_reads_each_state(tmp_path: Path) -> None:
 
     tasks = find_tasks(tmp_path)
 
-    assert [(t.key, t.repos) for t in tasks] == [("A-1", (Repo(Path("/repos/example"), "feature"),)), ("B-2", ())]
+    assert [(t.key, t.repos) for t in tasks] == [
+        ("A-1", (Repo(Path("/repos/example"), Path("/repos/example").resolve(), "feature"),)),
+        ("B-2", ()),
+    ]
+
+
+def state_on(key: str, path: Path) -> str:
+    return yaml.safe_dump({"key": key, "repos": [repo_entry(path, "feature")]})
+
+
+def test_find_tasks_reads_non_ascii_utf8(tmp_path: Path, repo: Path) -> None:
+    write_state(tmp_path, "A-1", (state_on("A-1", repo) + "title: café über straße\n").encode())
+
+    assert [t.key for t in match(find_tasks(tmp_path), repo, "feature")] == ["A-1"]
+
+
+def test_find_tasks_resolves_symlinked_repo(tmp_path: Path, repo: Path) -> None:
+    link = tmp_path / "link"
+    link.symlink_to(repo)
+    write_state(tmp_path / "work", "A-1", state_on("A-1", link))
+
+    tasks = find_tasks(tmp_path / "work")
+
+    assert [t.key for t in match(tasks, repo, "feature")] == ["A-1"]
+    assert (tasks[0].repos[0].resolved_path, tasks[0].start_directory) == (repo, link)
 
 
 @pytest.mark.parametrize(
-    "bad_text",
+    "bad_bytes",
     [
-        pytest.param("key: [unclosed\n", id="invalid yaml"),
-        pytest.param("- a list\n", id="not a mapping"),
-        pytest.param("", id="empty"),
-        pytest.param("repos: not-a-list\n", id="repos not a list"),
-        pytest.param("repos:\n- just-a-string\n", id="repo entry not a mapping"),
-        pytest.param("repos:\n- path: 5\n  branch: main\n", id="repo path not a string"),
-        pytest.param("repos:\n- path: [a, b]\n", id="repo path a list"),
-        pytest.param(b"key: \xff\xfe\n", id="not utf-8"),
+        pytest.param(b"key: [unclosed\n", id="invalid yaml"),
+        pytest.param(b"- a list\n", id="not a mapping"),
+        pytest.param(b"", id="empty"),
+        pytest.param(b"repos: not-a-list\n", id="repos not a list"),
+        pytest.param(b"repos:\n- just-a-string\n", id="repo entry not a mapping"),
+        pytest.param(b"repos:\n- path: 5\n  branch: feature\n", id="repo path not a string"),
+        pytest.param(b"repos:\n- path: [a, b]\n  branch: feature\n", id="repo path a list"),
+        pytest.param(b'repos:\n- path: "\\0"\n  branch: feature\n', id="repo path has a NUL"),
+        pytest.param(b'repos:\n- path: "\\ud800"\n  branch: feature\n', id="repo path has a lone surrogate"),
+        pytest.param(b"key: \xff\xfe\nrepos:\n- path: /x\n  branch: feature\n", id="not utf-8"),
     ],
 )
-def test_find_tasks_skips_bad_file(tmp_path: Path, capsys: pytest.CaptureFixture[str], bad_text: str | bytes) -> None:
-    write_state(tmp_path, "A-1", "key: A-1\n")
-    bad = write_state(tmp_path, "B-2", bad_text)
-    write_state(tmp_path, "C-3", "key: C-3\n")
+def test_find_tasks_isolates_bad_file(
+    tmp_path: Path, repo: Path, capsys: pytest.CaptureFixture[str], bad_bytes: bytes
+) -> None:
+    root = tmp_path / "work"
+    write_state(root, "A-1", state_on("A-1", repo))
+    bad = write_state(root, "B-2", bad_bytes)
+    write_state(root, "C-3", state_on("C-3", repo))
 
-    assert_skipped_only(tmp_path, capsys, bad)
+    assert_skipped_only(root, repo, capsys, bad)
 
 
-def test_find_tasks_skips_unreadable_file(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    write_state(tmp_path, "A-1", "key: A-1\n")
-    bad = tmp_path / "B-2"
+def test_find_tasks_skips_unreadable_file(tmp_path: Path, repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    root = tmp_path / "work"
+    write_state(root, "A-1", state_on("A-1", repo))
+    bad = root / "B-2"
     (bad / "state.yaml").mkdir(parents=True)
-    write_state(tmp_path, "C-3", "key: C-3\n")
+    write_state(root, "C-3", state_on("C-3", repo))
 
-    assert_skipped_only(tmp_path, capsys, bad)
+    assert_skipped_only(root, repo, capsys, bad)
 
 
-def assert_skipped_only(root: Path, capsys: pytest.CaptureFixture[str], bad: Path) -> None:
-    tasks = find_tasks(root)
+def assert_skipped_only(root: Path, repo: Path, capsys: pytest.CaptureFixture[str], bad: Path) -> None:
+    tasks = match(find_tasks(root), repo, "feature")
 
     assert [t.key for t in tasks] == ["A-1", "C-3"]
     warnings = capsys.readouterr().err.splitlines()

@@ -23,6 +23,7 @@ def branch_from_git_output(output: str) -> str | None:
 @dataclass(frozen=True)
 class Repo:
     path: Path | None
+    resolved_path: Path | None
     branch: str | None
 
     @classmethod
@@ -32,10 +33,12 @@ class Repo:
         path = entry.get("path")
         if path is not None and not isinstance(path, str):
             raise InvalidState("TODO: Update Prose a repo path is not a string")
-        return cls(path=None if path is None else Path(path), branch=entry.get("branch"))
+        if path is None:
+            return cls(path=None, resolved_path=None, branch=entry.get("branch"))
+        return cls(path=Path(path), resolved_path=Path(path).resolve(), branch=entry.get("branch"))
 
     def matches(self, toplevel: Path, branch: str) -> bool:
-        return self.path is not None and self.branch == branch and self.path.resolve() == toplevel.resolve()
+        return self.resolved_path is not None and self.branch == branch and self.resolved_path == toplevel
 
 
 @dataclass(frozen=True)
@@ -71,8 +74,8 @@ def find_tasks(root: Path) -> list[Task]:
     tasks = []
     for state_file in sorted(root.glob("*/state.yaml")):
         try:
-            tasks.append(Task.from_state(state_file.parent, yaml.safe_load(state_file.read_text())))
-        except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidState) as error:
+            tasks.append(Task.from_state(state_file.parent, yaml.safe_load(state_file.read_bytes())))
+        except Exception as error:  # noqa: BLE001
             reason = " ".join(str(error).split())
             print(f"TODO: Update Prose nibflow: skipped {state_file}: {reason}", file=sys.stderr)
     return tasks
