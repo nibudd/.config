@@ -222,10 +222,10 @@ def test_find_tasks_resolves_symlinked_repo(tmp_path: Path, repo: Path) -> None:
         pytest.param(b"repos:\n- just-a-string\n", id="repo entry not a mapping"),
         pytest.param(b"repos:\n- path: 5\n  branch: feature\n", id="repo path not a string"),
         pytest.param(b"repos:\n- path: [a, b]\n  branch: feature\n", id="repo path a list"),
-        pytest.param(b'repos:\n- path: "\\0"\n  branch: feature\n', id="repo path has a NUL"),
+        pytest.param(b'repos:\n- path: "/x\\0"\n  branch: feature\n', id="repo path has a NUL"),
         pytest.param(b'repos:\n- path: ""\n  branch: feature\n', id="repo path empty"),
         pytest.param(b"repos:\n- path: .\n  branch: feature\n", id="repo path relative"),
-        pytest.param(b'repos:\n- path: "\\ud800"\n  branch: feature\n', id="repo path has a lone surrogate"),
+        pytest.param(b'repos:\n- path: "/x\\ud800"\n  branch: feature\n', id="repo path has a lone surrogate"),
         pytest.param(b"key: \xff\xfe\nrepos:\n- path: /x\n  branch: feature\n", id="not utf-8"),
     ],
 )
