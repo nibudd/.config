@@ -8,7 +8,7 @@ Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills
 
 Attack the diff. A clean review is a conclusion you reach by looking hard, not a starting assumption.
 
-The dispatcher gives you `round` (1 or 2), `critic_models`, and in round 2 the commit range of the fix commits.
+The dispatcher gives you `round` (1 or 2), `critic_models`, and in round 2 the commit range of the fix commits. When the task branch started from a branch other than the default branch, it also gives you `base`. The full branch diff starts at the merge base with `base`. When the dispatcher gives no `base`, it starts at the merge base with the default branch.
 
 Reads: `approach.md`, `plan.yaml`, `brief.md` (`## Acceptance`), `review.yaml`, the diff. Writes: `review.yaml`, `misses.md`.
 
@@ -40,7 +40,8 @@ In the `lean` profile, only round 1 runs. Change round 1 as follows:
 - Start one `diff-critic` on the first model in `critic_models`, at default effort, at every tier.
 - Tell it to report at most five findings, the most severe first.
 - Tell it to report a defect only when an input that the real callers of the code can produce causes it. Give it the callers and the input sources from `brief.md`. For a local tool that reads the user's own files, a malformed or hostile value in those files is not such an input.
-- The rest of round 1 does not change. Each finding gets a `refuter`, and the gate runs at Standard and High.
+- Start one `refuter` for all findings, not one for each finding. Give it each claim and its code, and none of the critic's reasoning. Tell it to judge each claim separately and to return one verdict, reason and checked block for each claim, labeled with the claim number.
+- The rest of round 1 does not change. The gate runs at Standard and High.
 
 Guards:
 

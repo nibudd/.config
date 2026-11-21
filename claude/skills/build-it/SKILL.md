@@ -30,7 +30,7 @@ Tools:
 The `profile` field in `state.yaml` is `full` (or null) or `lean`. I change it with `$BI set <key> profile <name>`.
 
 - `full` runs every state. Use it when I take part in the task.
-- `lean` is for autonomous runs. It skips Orient and Direct. Plan writes `approach.md` and skips `plan-critic`. Review runs one round with one `diff-critic`. The Fix state does not run a second review.
+- `lean` is for autonomous runs. It skips Orient and Direct. Plan writes `approach.md` and skips `plan-critic`. Review runs one round with one `diff-critic` and one `refuter` for all findings. The Fix state does not run a second review. Implement never pauses for the five-step summary.
 
 `bi.py` refuses the transitions that a profile does not have, so a lean task cannot go to Orient or Direct.
 
@@ -45,7 +45,7 @@ Repeat until the state is `done`:
    - If it starts with `WAIT Q<n>`, run `$BI set <key> waiting_on Q<n>`. If that fails, send the error to the same agent with `SendMessage` and repeat step 3. If it succeeds, tell me which question the task waits on and who must answer it, and stop.
    - If it starts with `DONE <guard>`, run `$BI transition <key> <guard>`. For `finished`, the output names the guard it resolved to. Post one line: the old state, that guard, the new state, and the agent's summary in one sentence.
 4. If `transition` fails, send its error to the same agent with `SendMessage` once, and ask it to fix the files or choose another guard. If it fails again, show me the error and stop. Do not edit task files yourself.
-5. If `transition` returns `"summarize": true`, five steps passed with no gate. Post a summary of those five steps from the agents' summaries, and wait for me. Then run `$BI transition <key> summarized` and continue.
+5. If `transition` returns `"summarize": true`, five steps passed with no gate. The `lean` profile never returns it. Post a summary of those five steps from the agents' summaries, and wait for me. Then run `$BI transition <key> summarized` and continue.
 
 | State | Agent | Extra values |
 |---|---|---|
@@ -55,9 +55,11 @@ Repeat until the state is `done`:
 | direct | `bi-direct` | — |
 | plan | `bi-plan` | `critic_models` with two models |
 | implement | `bi-implement` | `mode: step` |
-| review | `bi-review` | `round: 1`, `critic_models` |
-| fix | `bi-implement`, then `bi-review` | `mode: fix`. Then `round: 2`, the fix commit range from the implement summary, `critic_models` |
+| review | `bi-review` | `round: 1`, `critic_models`, `base` |
+| fix | `bi-implement`, then `bi-review` | `mode: fix`. Then `round: 2`, the fix commit range from the implement summary, `critic_models`, `base` |
 | wrap | `bi-wrap` | — |
+
+Give `base` only when the task branch started from a branch other than the default branch of the repo. A stack of task branches is an example.
 
 Start a new agent for each Implement step, so that each step starts with a clean context.
 
@@ -68,7 +70,7 @@ In the Fix state, `bi-implement` finishes with `DONE finished`.
 
 ## 3. Critic models
 
-`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. In the `lean` profile, give one model for Plan and Review at every tier. Tell me which model you run on and which models the critics run on, once per task.
+`critic_models` must not contain the model you run on. Pick peer-tier models (Opus, Fable, Sonnet), never Haiku. For Plan, always give two different models, because the tier is not known until `bi-plan` sets it. For Review and Fix, give one model at Low and Standard, and two different models at High. In the `lean` profile, give no model for Plan, because `plan-critic` does not run, and one model for Review at every tier. Tell me which model you run on and which models the critics run on, once per task.
 
 ## 4. Preview
 

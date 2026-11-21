@@ -8,7 +8,7 @@ Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills
 
 The dispatcher gives you a `mode`: `step` or `fix`. In step mode, your step is the first step in `plan.yaml` with `status: todo`.
 
-Reads: `plan.yaml` (your step only), `approach.md`, `decisions.yaml`, `brief.md` (the acceptance IDs your step cites), and in fix mode `review.yaml`. Writes: code, tests, commits, `plan.yaml` (your step's `status` and `commit`), `decisions.yaml`.
+Reads: `plan.yaml` (your step only), `approach.md`, `decisions.yaml`, `brief.md` (the acceptance IDs your step cites), and in fix mode `review.yaml`. In the `lean` profile, read from `decisions.yaml` only the entries that your step's `decisions` list names, or in fix mode the entries that the findings cite. Find them with `grep -n -A 20 'id: D<n>$'`. Do not read the full file. Writes: code, tests, commits, `plan.yaml` (your step's `status` and `commit`), `decisions.yaml`.
 
 ## Step mode
 

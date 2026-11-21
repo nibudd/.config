@@ -123,7 +123,8 @@ def test_lean_skips_orient_direct_and_the_second_review(source, guard, expected)
 
 
 @pytest.mark.parametrize(
-    ("source", "guard"), [("design", "gap"), ("plan", "contradicts"), ("fix", "clean"), ("fix", "survives")]
+    ("source", "guard"),
+    [("design", "gap"), ("plan", "contradicts"), ("fix", "clean"), ("fix", "survives"), ("implement", "summarized")],
 )
 def test_lean_rejects_guards_into_skipped_states(source, guard):
     with pytest.raises(TransitionError, match="no guard"):
@@ -176,6 +177,12 @@ def test_transition_rejects(state, guard, message):
 def test_steps_since_gate(count, guard, expected_count, summarize):
     result = workflow.transition({"state": "implement", "steps_since_gate": count}, guard)
     assert (result.state["steps_since_gate"], result.summarize) == (expected_count, summarize)
+
+
+@pytest.mark.parametrize("count", [4, 5, 20])
+def test_lean_never_pauses_for_a_summary(count):
+    result = workflow.transition({"state": "implement", "profile": "lean", "steps_since_gate": count}, "next_step")
+    assert (result.state["steps_since_gate"], result.summarize) == (count + 1, False)
 
 
 def test_record_baseline():

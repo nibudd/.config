@@ -25,7 +25,7 @@ DECISION_STATUSES = ("agreed", "proposed", "delegated")
 QUESTION_STATUSES = ("open", "resolved", "accepted")
 CHECK_KINDS = ("command", "new_test", "planned", "none")
 BASELINES = ("pass", "fail", "new", "planned")
-STEPS_BEFORE_SUMMARY = 5
+STEPS_BEFORE_SUMMARY = {"full": 5, "lean": None}
 STEP_STATUSES = ("todo", "done")
 SETTABLE = {"kind": KINDS, "tier": TIERS, "profile": PROFILES, "waiting_on": None}
 
@@ -73,7 +73,6 @@ LEAN_TRANSITIONS: dict[tuple[str, str], tuple[str, str | None]] = {
     ("design", "new_criterion"): ("requirements", "design"),
     ("plan", "approved"): ("implement", None),
     ("implement", "next_step"): ("implement", None),
-    ("implement", "summarized"): ("implement", None),
     ("implement", "done"): ("review", None),
     ("implement", "gate"): ("design", "implement"),
     ("implement", "contradicts"): ("plan", None),
@@ -201,7 +200,8 @@ def transition(state: dict[str, Any], guard: str) -> Transition:
     new = {**state, "return_stack": stack, "state": target}
     new["steps_since_gate"] = steps_after(state, guard)
     new["log"] = [*state.get("log", []), {"from": current, "guard": guard, "to": target}]
-    return Transition(new, summarize=new["steps_since_gate"] >= STEPS_BEFORE_SUMMARY)
+    limit = STEPS_BEFORE_SUMMARY[profile(state)]
+    return Transition(new, summarize=limit is not None and new["steps_since_gate"] >= limit)
 
 
 def set_field(state: dict[str, Any], name: str, value: str | None) -> dict[str, Any]:

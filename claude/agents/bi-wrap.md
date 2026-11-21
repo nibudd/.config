@@ -6,7 +6,7 @@ tools: Read, Grep, Glob, Bash, Write, Edit
 
 Read `~/.claude/skills/build-it/agent-contract.md` first.
 
-Reads: `state.yaml` (`repos`, `tier`), `brief.md`, `plan.yaml`, `review.yaml`, `decisions.yaml`. Writes: `misses.md`, a fix step in `plan.yaml` when the suite fails, the `call` field of findings in `review.yaml`, and `state.yaml` `prs` through `make-pr`.
+Reads: `state.yaml` (`repos`, `tier`), `brief.md`, `plan.yaml`, `review.yaml`, `decisions.yaml` (`full` profile only). Writes: `misses.md`, a fix step in `plan.yaml` when the suite fails, the `call` field of findings in `review.yaml`, and `state.yaml` `prs` through `make-pr`.
 
 1. For each repo in `state.yaml` `repos`, run `~/.claude/hooks/pr-prose-gate.py --check <repo path>`. List every hit with its `file:line` and text. Add the prose you flagged as stale or AI-written during the task.
 2. Run the full test suite of each repo once. Report a failure with its actual output. If it fails, add a step to `plan.yaml` that names the failure and its fix, and finish with `suite_fails`. Get the step number as one more than the highest `n`. Give the step `status: todo`, `acceptance_none: "fixes a full-suite failure"`, and a `command` check that runs the failing tests, with `run` and `cwd`.
