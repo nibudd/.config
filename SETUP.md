@@ -17,6 +17,8 @@ sudo apt-get install -y git gh curl unzip zsh tmux build-essential make ripgrep 
   libncurses-dev libffi-dev liblzma-dev tk-dev
 ln -sf "$(command -v fdfind)" ~/.local/bin/fd
 
+[ -e ~/.config/.git ] || git clone https://github.com/nibudd/.config.git ~/.config
+
 curl -fsSL https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz -o /tmp/nvim.tar.gz
 sudo rm -rf /opt/nvim-linux-x86_64
 sudo tar -C /opt -xzf /tmp/nvim.tar.gz
@@ -38,7 +40,6 @@ curl -fsSL https://pyenv.run | bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 curl -fsSL https://claude.ai/install.sh | bash
 
-[ -e ~/.config/.git ] || git clone https://github.com/nibudd/.config.git ~/.config
 [ -L ~/.zshrc ] || rm -f ~/.zshrc
 ~/.config/bootstrap.sh
 
@@ -72,13 +73,14 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 brew install git gh curl unzip zsh tmux neovim tree-sitter-cli make ripgrep fd jq direnv uv pyenv \
   openssl readline sqlite3 xz zlib tcl-tk powerlevel10k tmux-fingers cormacrelf/tap/dark-notify
 
+[ -e ~/.config/.git ] || git clone https://github.com/nibudd/.config.git ~/.config
+
 RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 [ -d ~/.tmux/plugins/tpm ] || git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | PROFILE=/dev/null bash
 curl -fsSL https://claude.ai/install.sh | bash
 
-[ -e ~/.config/.git ] || git clone https://github.com/nibudd/.config.git ~/.config
 [ -L ~/.zshrc ] || rm -f ~/.zshrc
 ~/.config/bootstrap.sh
 
