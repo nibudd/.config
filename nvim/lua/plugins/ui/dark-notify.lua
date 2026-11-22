@@ -2,6 +2,7 @@
 return {
 	{
 		"cormacrelf/dark-notify",
+		cond = vim.fn.executable("dark-notify") == 1,
 		config = function()
 			require("dark_notify").run({
 				schemes = {
