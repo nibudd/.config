@@ -116,7 +116,7 @@ python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>
 
 Fix each hard violation unless the fix costs a fact, a hedge, or a scope qualifier. Modality is content, so "the request may have failed" never becomes "the request failed". The linter cannot tell a rule from the bad example that rule quotes. A style guide about writing will always report violations it does not have.
 
-These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A summary for a Jira comment stays plain prose with no list, even where STE would break a sequence into numbered steps, because prose is the shape I write from. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
+These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A summary for a Slack message stays plain prose with no list, even where STE would break a sequence into numbered steps, because prose is the shape I write from. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
 
 # Collaboration style
 

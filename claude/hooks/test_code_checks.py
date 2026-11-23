@@ -188,3 +188,13 @@ def test_stop_skips_a_worktree_it_already_checked_this_session(repo, monkeypatch
     assert run_main(monkeypatch, capsys, event) == ""
     (repo / "a.py").write_text("one\nTWO\nTHREE\n")
     assert run_main(monkeypatch, capsys, event) != ""
+
+
+@pytest.mark.parametrize(
+    ("content", "code", "out"),
+    [("one\nTWO\nthree\n", 1, "a.py:2: new"), ("one\ntwo\nthree\n", 0, "ok")],
+)
+def test_check_worktree_reports_findings_on_uncommitted_lines(repo, capsys, content, code, out):
+    (repo / "a.py").write_text(content)
+    assert code_checks.check_worktree(repo) == code
+    assert capsys.readouterr().out.strip() == out

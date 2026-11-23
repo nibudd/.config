@@ -222,6 +222,29 @@ def on_edit(event: dict[str, Any]) -> int:
     return 0
 
 
+def report_findings(repo: Path, checks: list[Check], ranges: dict[str, list[tuple[int, int]]]) -> list[str]:
+    changed = {path: lines_in(r) for path, r in ranges.items()}
+    found = []
+    for check in checks:
+        paths = sorted(p for p in ranges if check.covers(p) and (repo / p).exists())
+        if not paths:
+            continue
+        for command in check.report_commands(paths):
+            result = run(command, repo / check.cwd)
+            found.extend(check.report(command, result, repo, changed))
+    return found
+
+
+def check_worktree(start: Path) -> int:
+    repo = repo_root(start)
+    if repo is None:
+        print("not a git repository")
+        return 1
+    found = report_findings(repo, checks_for(load_profile(repo)), changed_ranges(repo))
+    print("\n".join(found) or "ok")
+    return 1 if found else 0
+
+
 def on_stop(event: dict[str, Any]) -> int:
     if event.get("stop_hook_active"):
         return 0
@@ -238,15 +261,7 @@ def on_stop(event: dict[str, Any]) -> int:
         return 0
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     state.write_text(fingerprint)
-    changed = {path: lines_in(r) for path, r in ranges.items()}
-    found = []
-    for check in checks:
-        paths = sorted(p for p in ranges if check.covers(p) and (repo / p).exists())
-        if not paths:
-            continue
-        for command in check.report_commands(paths):
-            result = run(command, repo / check.cwd)
-            found.extend(check.report(command, result, repo, changed))
+    found = report_findings(repo, checks, ranges)
     if not found:
         return 0
     reason = "Lint and typecheck found problems on lines you changed. Fix them, or tell the user why one cannot be fixed:\n"
@@ -262,4 +277,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--check":
+        sys.exit(check_worktree(Path(sys.argv[2] if len(sys.argv) > 2 else ".")))
     sys.exit(main())

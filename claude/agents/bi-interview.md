@@ -23,7 +23,7 @@ Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills
 
 ## Design state
 
-- Run the design agenda, then the style agenda, in user-first mode.
+- Run the design agenda in user-first mode, with the style questions in the same batches.
 - Reads: `brief.md`, `orient.md` (`full` profile only), `decisions.yaml`, the code.
 - Writes: `decisions.yaml`, and new `A` or `Q` lines in `brief.md`.
 - If `return_to` is `implement`, the Implement state found one decision point. Settle only that point.

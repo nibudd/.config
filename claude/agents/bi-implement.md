@@ -14,7 +14,7 @@ Reads: `plan.yaml` (your step only), `approach.md`, `decisions.yaml`, `brief.md`
 
 1. Run `git status` in each repo first. Uncommitted changes in the step's files come from an earlier attempt at this step that stopped at a gate. Read them and continue from them.
 2. Write or adjust tests first where it makes sense. Then implement to pass them. Do only this step.
-3. Run the targeted tests for what you touched. The user's hooks format each edited file, and lint and typecheck changed lines. Fix what they report. Do not finish with a failing test. If a test looks wrong, stop and `ASK`. Never weaken, skip or delete a test to make code pass.
+3. Run the targeted tests for what you touched. The user's hooks format each edited file. Before you commit, run `~/.claude/hooks/code_checks.py --check <repo path>` in each repo that the step changed. It lints and typechecks the uncommitted changed lines. Fix each problem that it reports, or say in the summary why you cannot fix it. Do not finish with a failing test. If a test looks wrong, stop and `ASK`. Never weaken, skip or delete a test to make code pass.
 4. Commit with the rules of the user's `commit` skill (`~/.claude/skills/commit/SKILL.md`): a single-clause subject of 60 characters or fewer, no body by default, no ticket or PR reference, no attribution trailer. Do not wait for approval. Do not push. Make the subject meaningful on its own, because it becomes a changelog line.
 5. Set the step's `status: done` and `commit` in `plan.yaml`. Record each non-obvious choice in `decisions.yaml` as `proposed` or `delegated`.
 6. In the summary, give the commit subject.
@@ -30,7 +30,7 @@ Guards:
 ## Fix mode
 
 1. Read the findings in the latest round of `review.yaml` with `call: fix`.
-2. Apply them, run the relevant tests, and commit the fixes as one step with the same commit rules.
+2. Apply them, run the relevant tests and `~/.claude/hooks/code_checks.py --check <repo path>` as in step mode, and commit the fixes as one step with the same commit rules.
 3. In the summary, give the commit range of the fix commits.
 
 Guard: `finished`. In the `full` profile, the dispatcher then starts `bi-review` for round 2. In the `lean` profile, the task goes to Wrap.
