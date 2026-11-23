@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import subprocess
 import sys
@@ -6,6 +7,9 @@ from pathlib import Path
 import pytest
 
 HOOK = Path(__file__).with_name("pr-prose-gate.py")
+_spec = importlib.util.spec_from_file_location("pr_prose_gate", HOOK)
+gate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(gate)
 
 
 def git(repo, *args):
@@ -75,3 +79,27 @@ def test_check_passes_clean_branch(repo_with_marker):
     git(repo_with_marker, "commit", "-q", "-am", "drop marker")
     result = run_check(repo_with_marker)
     assert (result.returncode, result.stdout.strip()) == (0, "ok")
+
+
+@pytest.mark.parametrize(
+    ("prefix", "number", "flagged"),
+    [
+        ("PROG", "1225", True),
+        ("CO", "42", True),
+        ("CW", "10", True),
+        ("NF", "01", True),
+        ("PROG", "12345", True),
+        ("SHA", "256", False),
+        ("UTF", "16", False),
+        ("ISO", "8601", False),
+        ("cw", "12", False),
+        ("XPROG", "12", False),
+    ],
+)
+def test_violations_flag_ticket_keys(prefix, number, flagged):
+    found = list(gate.violations([("app.py", 1, f"# see {prefix}-{number}")]))
+    assert bool(found) == flagged
+
+
+def test_violations_skip_markdown():
+    assert list(gate.violations([("notes.md", 1, "see " + "PROG" + "-1225")])) == []

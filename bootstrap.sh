@@ -31,6 +31,7 @@ link "$CONFIG_DIR/claude/agents"          "$HOME/.claude/agents"
 link "$CONFIG_DIR/claude/output-styles"   "$HOME/.claude/output-styles"
 link "$CONFIG_DIR/claude/hooks"           "$HOME/.claude/hooks"
 link "$CONFIG_DIR/claude/statusline.sh"   "$HOME/.claude/statusline.sh"
+[ -e "$HOME/.claude/machine.md" ] || : > "$HOME/.claude/machine.md"
 
 echo "Setting up Claude working docs..."
 if [ -d "$HOME/.claude-work/.git" ]; then

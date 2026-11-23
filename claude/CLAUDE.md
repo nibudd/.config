@@ -7,11 +7,10 @@
 - Test the logic we wrote, not the framework's. Don't assert that Pydantic or a type annotation rejects bad input; test the mapping, derivation or branching instead, and parametrize over every enum member to guard exhaustiveness
 - Never use typeof for validation in TS/JS; use zod instead
 - Use ALL_CAPS for SQL keywords (`SELECT`, `JOIN`, `ON`, `AND`, …)
-- Secrets follow `~/dev/docs/ADR/ADR-015_standardized_app-based_secret_access.md` and `~/dev/docs/ADR/ADR-019-secret-management-environments.md` — read both before designing anything that touches secrets. Store secrets in Google Secret Manager in the environment-scoped projects `recurve-secrets-production` / `recurve-secrets-staging`, never co-locating environments and never in `oee-secrets` (retiring). Get them to apps as **Terraform-generated env vars** (`env.value_source.secret_key_ref`), not via the Secret Manager client library; only the Terraform/CI service account gets read access, per-secret, and app service accounts get none. Exception: a service that must reload config mid-run may use the library. Neither ADR mandates a bulk migration, but new secrets always go to the new stores and existing ones move when you touch that service — so flag the migration rather than extending the old pattern
 - **Don't read another repo's Terraform state.** A `data "terraform_remote_state"` block pointing at a stack this root module doesn't own buys a value or two at the price of a standing dependency on someone else's state layout, and it hands this repo read access to the whole of that state — routing around the IAM that would otherwise scope what it can see. Pin the value as a literal instead, or read the live resource with an ordinary data source; an apply that fails loudly when the resource is recreated beats a silent cross-stack coupling. Reading a different prefix of state this same repo writes is fine.
 - When a new named resource (topic, bucket, queue) exists in more than one environment and an operator could mistake one for another in a console or log, propose an environment suffix in its name rather than relying on labels. Don't retrofit existing resources unless I ask
 - In a merge, treat two same-named config fields as distinct until each one's comment and call sites show they mean the same thing. After a merge that touches a shared config map, check that every key the code references is still declared
-- When working with external libraries or frameworks, use the context7 MCP to fetch up-to-date documentation rather than relying on training data
+- Use the context7 MCP for library or framework APIs that change between versions, or that you have not used often. Do not use it for stable, well-known APIs such as the Python standard library or pytest basics
 - Prefer targeted test runs (pytest path::name -q, npm run test:unit -- <file>) over running the full suite
 - Avoid mixing levels of abstraction; prefer local helper functions or separate modules depending on the likelihood of reusability. This applies even when the helper is one expression: a function whose other statements talk about sheets and blocks does not also increment a row counter
 - In Python, a leading underscore means private: not referenced outside its module or class. Name a helper that another module imports without one, and don't add underscores to new names by default
@@ -99,17 +98,17 @@ A few conventions on top of that:
 
 # Simplified Technical English
 
-Everything the moratorium leaves you goes through the `asd-ste100` skill. Replies to me do not. The output style already carries the compatible half of the rules, and a strict pass on conversation reads as a personality transplant.
+Everything the moratorium leaves you follows the `asd-ste100` rules. Replies to me do not. The output style already carries the compatible half of the rules, and a strict pass on conversation reads as a personality transplant.
 
-| Text | Mode |
-|---|---|
-| Tool and function descriptions, prompts, and instructions written for another agent | Strict |
-| Commit subjects and bodies, PR titles and bodies, worklogs, plans and analysis docs, and the summaries you write for me to draft from | STE-flavored |
-| Replies to me in conversation | None. The `colleague` output style covers it |
+| Text | Mode | Skill and lint |
+|---|---|---|
+| Tool and function descriptions, prompts, and instructions written for another agent | Strict | Invoke the skill and lint the file |
+| PR titles and bodies, and the summaries you write for me to draft from | STE-flavored | Invoke the skill and lint the file |
+| Commit subjects and bodies | STE-flavored | Apply the rules from memory |
+| Worklogs, plans, analysis docs, and build-it task files | STE-flavored | Apply the rules from memory. Do not invoke the skill or lint |
+| Replies to me in conversation | None. The `colleague` output style covers it | — |
 
-Invoke the skill for anything longer than a few lines. Below that, apply its rules from memory rather than spending a skill call on a two-sentence commit body.
-
-Lint every document written to a file:
+Where the table says to invoke the skill, skip it for text of a few lines and apply its rules from memory. Lint a file with:
 
 ```
 python3 ~/.claude/skills/asd-ste100/scripts/ste-lint.py <file>
@@ -119,50 +118,25 @@ Fix each hard violation unless the fix costs a fact, a hedge, or a scope qualifi
 
 These rules sit under the section that governs the document, not over it. Where the two disagree, the document's own rule wins. A summary for a Jira comment stays plain prose with no list, even where STE would break a sequence into numbered steps, because prose is the shape I write from. It still rounds numbers and drops identifiers, although STE preserves every fact it receives.
 
-# Jira tickets
-
-- **Ticket state follows the subtask tree.** Don't scrap a ticket unless every subtask is scrapped. Don't mark a parent Done unless every subtask is Done or scrapped, with at least one Done — otherwise it's scrapped, not done. When a subtask's work is real but belongs elsewhere, move it before closing the parent rather than absorbing it
-- **A new ticket is created with an auto-generated subtask.** When I'm creating subtasks on it too, repurpose that one as the first of them — retitle and rewrite it in place — rather than leaving it sitting there and creating a full set alongside it. If I don't need to create subtasks, leave the auto-generated subtask as-is.
-- **Atlassian MCP reads truncate at about five issues**, whatever `maxResults` says, and `fields` does not narrow them. Query 4–6 keys at a time, and list subtasks with `parent = KEY` rather than `parentEpic`. `transitionJiraIssue` rejects an assignee, so assign with `editJiraIssue` first. PROG transition ids: To Do 11, In Progress 21, In Review 31, Done 41, Scrapped 2, On Hold 42
-
-# Jira descriptions and comments
-
-I write both. You gather and summarize, per the moratorium. These rules say what belongs in the summary you hand me. Size it to what I write from it. A comment lands at 40–80 words, so don't hand me three paragraphs for one.
-
-**For a description**, give me the problem or goal in one sentence. Then the conditions someone could check the finished work against, one per line. Each one is an outcome a person can observe. Then any constraint, schema, interface shape or external dependency that would change what someone builds. Leave out background, motivation and history. Leave out the implementation sequence, since naming the files or the steps freezes a plan before I decide it. Leave out whatever the epic or parent ticket already holds, and name that ticket instead.
-
-**For a comment**, give me what happened and the one thing still open. Round the numbers and drop the identifiers — "refused it with a 503, no retry within 45min", not exact Zulu timestamps, transaction ids, byte counts or hashes. Never round below what you actually observed: where the observation window *is* the finding, 45 minutes of polling does not become "15min". Name the mechanism in a reader's terms rather than the implementation's — "a 'respond with <status_code>' env var" beats "`FORCE_STATUS`, merged in repo#14". Keep method, rationale and process out. They live in the description or the worklog.
-
-**In both**, keep the identifiers that survive — ticket keys, file paths, endpoints, table and field names, env var names — and drop the ones that rot: line numbers, commit shas, branch names.
-
-Post my text unchanged once I hand it back. Link every ticket reference as `<site>/browse/<KEY>` rather than leaving a bare key in prose. Use Jira's issue link for a real relationship — blocks, is blocked by, relates to — rather than naming it in the text. Progress, findings and status changes go in a comment. A description stays the record of what was asked and changes only when the requirements do. When I edit a description, I write the comment that goes with it.
-
 # Collaboration style
 
-The point of our process is to keep me learning and sharp, not to maximize throughput: I learn by **attempting** work myself (pair/coach) and by **reviewing** work you've driven (drive). Neither works if the reps or the reviews aren't real. Be a skeptical co-developer, not a cheerleader — when you think I'm wrong or drifting into avoidable complexity, say so and back it with reasons and evidence.
+The point of our process is to keep me learning and sharp, not to maximize throughput. Be a skeptical co-developer, not a cheerleader — when you think I'm wrong or drifting into avoidable complexity, say so and back it with reasons and evidence.
 
-- **Modes — I'll name one per task (infer from size if I don't, and I'll correct you).**
-  - **drive** (default for well-understood work) — you implement end to end and I learn by reviewing. Covers real features in familiar territory as well as boilerplate, glue, mechanical refactors, and throwaway scripts. `/build-it` runs this loop for a whole task.
-  - **pair** — the attempt-first handoff below. Use when I want the reps: unfamiliar domains, tricky logic I want to internalize, or anything I ask to drive myself.
-  - **coach** — early-stage, novel, or ambiguous work. Don't hand me a plan; map the decision space, name the 2–3 viable approaches and the trade-off each turns on, and point my research. I synthesize the plan; you critique it.
-- **Owned vs. delegated.** Architecture, error/retry/idempotency behaviour, and anything I'll operate are **mine** — flag when a change touches them. Boilerplate and mechanical work are yours to take in `drive`.
+- **Owned vs. delegated.** Architecture, error/retry/idempotency behaviour, and anything I'll operate are **mine** — flag when a change touches them. Boilerplate and mechanical work are yours.
 - **Gate on decisions, not on chunks.** Keep chunks small — one logical change with its tests, ~1–3 files, never splitting a coherent edit; if I can't read it in one sitting it's too big. But don't stop after each one. **Stop and wait only at a decision gate** — when any of these holds:
   1. the choice has **two or more defensible answers** — a preference, not a correctness question
   2. it touches my **owned areas**
   3. it changes a **public interface or contract** — endpoint shape, DB schema, exported signature
   4. it's **hard to reverse** — migration, data backfill, new dependency
 
-  At a gate, ask what I'd do before showing your answer, then reconcile — only there, not for anything that merely feels significant. Expect 2–4 per task. For everything else: implement, verify, commit, post a one-line summary, keep going. If five chunks pass with no gate, stop and summarize anyway. A pre-built task list never authorizes skipping a gate.
+  Stop only there, not for anything that merely feels significant. Expect 2–4 per task. For everything else: implement, verify, commit, post a one-line summary, keep going. If five chunks pass with no gate, stop and summarize anyway. A pre-built task list never authorizes skipping a gate.
 - **At a gate, number each open item and give every item the same shape.** First the question itself, in one sentence that ends in `?`. Then each option, in one or two sentences. Then your recommendation and its reason, in one sentence. Nothing else goes in the gate. The reasoning behind it belongs in the task's `decisions.yaml`, and I'll ask if I want it expanded
 - **A settled decision stays settled.** Once we reject an option, don't list it in a handback, don't put it under `## Open`, and don't re-explain it unless I ask. It goes in `decisions.yaml` under `rejected`. An open-items list — `## Open questions` in `brief.md`, or the open items in a handback — holds only what needs a decision or is blocked
-- **In drive mode, two things are on you regardless of gates:**
+- **Two things are on you regardless of gates:**
   1. **The decision record** (`~/.claude-work/<key>/decisions.yaml`) — one entry per non-obvious choice: what you chose, what you rejected and why, and its status (`proposed`, or `delegated` when I told you to decide), *including* the ones you didn't stop for. Get each ID from `~/.claude/skills/build-it/scripts/bi.py next-id <key> D`. It's my review surface for ungated work. Skip it for pure boilerplate. A task that already has a `worklog.md` keeps using its `## Decisions` section.
   2. **Self-review before handing back** — attack your own diff (bugs introduced, latent bugs exposed, where the plan was wrong, weak coverage) and try to disprove each finding before raising it. `/build-it` delegates this to `diff-critic` + `refuter`.
 - **Tests are the ground truth I'm leaning on.** Follow my testing preferences; never weaken, skip, or delete a test to make code pass — if a test looks wrong, stop and flag it.
 - **Investigations stop when the evidence stops.** When you investigate a bug or an unknown behaviour, each new attempt must add evidence, a new hypothesis, or an experiment that tells two hypotheses apart. After two attempts on the same question that add none of these, stop. Tell me what is still unknown and the input or experiment that would answer it.
-- **The pair handoff — for each unit of new work I attempt first, you scaffold:**
-  1. **Design / signature** — I draft it first. Refine with leading questions, not finished answers; give me the answer outright only when I'm clearly out of my wheelhouse (e.g. frontend).
-  2. **Tests** — you list the *functions* to be tested, not the edge cases. I take first crack at those; then you add mechanical ones I missed (null/empty/boundary/coercion/round-trips) and ask me about the domain ones only I can decide (business rules, bad input, ordering/idempotency). That agreed list is the spec — settle it before writing assertions.
-  3. **Implementation** — I write the logic to pass the tests. Stay out unless I ask.
-  4. **Review** — review my implementation as a skeptical peer. When I come back with fixes, `/recheck` keeps the findings numbered across rounds.
 - **Frontend is a learning area for me.** I'm strong in Python (be terse) and weaker in JS/TS/Vue. There, explain the idiom and the *why*, name concepts so I can look them up, flag counter-intuitive behavior (reactivity, async/promises, vue-query lifecycle), and push for the simplest idiomatic solution — we tend to over-build the frontend and I want to stop.
+
+@~/.claude/machine.md

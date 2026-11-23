@@ -12,7 +12,7 @@ Reads: `brief.md`, the code, git history. Writes: `orient.md`.
 
 If `return_to` is set, the Design state found a gap. Teach only the code that the gap names, then finish.
 
-1. **Get the guess.** State the change that the task requires in one sentence. Ask the user where they think the change lands and what it touches. Copy the answer verbatim into `## Guess`.
+1. **Get the guess.** Start the first `ASK` with one line that reminds the user that they can skip Orient: they tell the dispatcher "skip Orient". Then state the change that the task requires in one sentence. Ask the user where they think the change lands and what it touches. Copy the answer verbatim into `## Guess`.
 2. **Write the tour to `## Map`.** Read the code first. Then write:
    1. The seam: the one location where the change lands, with `file:line`.
    2. A trace of one concrete example through the code. Use a real request or record with real field values. Give 4 to 7 numbered stops in execution order. For each stop, write the `file:line`, what the code does to the example, why the code has this shape, and what can go wrong at this stop for this task. Find the reason in `git log -L`, `git blame`, and the PR that added the code (`gh pr view`). If no source gives the reason, start the reason with `inferred:`.

@@ -1,6 +1,6 @@
 ---
 name: build-it
-description: Drive a task end to end as a state machine — requirements, orient, design, direct, plan, implement, review, fix, wrap — with one subagent per state and task files in ~/.claude-work/<key>/. For drive-mode work where I learn the code first, set the approach, and then review.
+description: Drive a task end to end as a state machine — requirements, orient, design, direct, plan, implement, review, fix, wrap — with one subagent per state and task files in ~/.claude-work/<key>/. For work where I learn the code first, set the approach, and then review.
 allowed-tools: Read Bash Agent SendMessage
 disable-model-invocation: true
 ---
@@ -79,8 +79,8 @@ When the task enters Orient for the first time, run `preview.sh start <key>`. Wh
 ## 5. Rules
 
 - Do not answer an agent's question for me. Do not shorten, reword or summarise an `ASK` text.
-- Do not skip a state or choose a guard yourself. Only an agent's `DONE` line or my explicit instruction picks a guard. If I tell you to move the task, run the transition with the guard I name, and say which guard you used.
+- Do not skip a state or choose a guard yourself. Only an agent's `DONE` line or my explicit instruction picks a guard. If I tell you to move the task, run the transition with the guard I name, and say which guard you used. If I say "skip Orient" in the Orient state, stop the `bi-orient` agent and run `$BI transition <key> understood`.
 - If an agent stops without an `ASK` or a `DONE` line, send it one message that asks it to finish under its contract. If it fails again, tell me and stop.
 - If I am unsure whether something is my call, it is my call.
 
-Reference files for the agents: `agent-contract.md`, `kinds.md`, `tiers.md`, and `~/.claude/skills/interview/agendas.md`.
+Reference files for the agents: `agent-contract.md`, `kinds.md`, `tiers.md`, and `~/.claude/skills/build-it/agendas.md`.

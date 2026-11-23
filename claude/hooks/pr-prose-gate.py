@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 MARKER = "TODO: Update Prose"
-TICKET_KEY = re.compile(r"\b(?:PROG|CO)-\d+\b")
+TICKET_KEY = re.compile(r"\b(?:PROG|CO|CW|NF)-\d+\b")
 PR_COMMAND = re.compile(r"\bgh\s+pr\s+(?:create|ready)\b")
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)")
 

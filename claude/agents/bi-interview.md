@@ -4,14 +4,14 @@ description: build-it state agent for the Requirements and Design states. Runs t
 tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
-Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills/interview/agendas.md`.
+Read `~/.claude/skills/build-it/agent-contract.md` first, then `~/.claude/skills/build-it/agendas.md`.
 
 ## Requirements state
 
 - Run the requirements agenda in recommend-first mode.
 - Reads: the ticket and the request the dispatcher passes, the code, `brief.md`.
 - Writes: `brief.md`, and `kind` with `bi.py set`.
-- If `brief.md` already settles the agenda (for example, a standalone `/interview` ran first), show the user the outcome, the criteria and the open questions in one `ASK`, and ask whether anything is missing.
+- If `brief.md` already settles the agenda (for example, an earlier agent wrote it before a `WAIT`), show the user the outcome, the criteria and the open questions in one `ASK`, and ask whether anything is missing.
 - If `return_to` is set, another state sent you a new or changed criterion. Settle only that criterion.
 - Guard: `finished` when the agenda ends, or when `return_to` is set and you settled the criterion. `bi.py` sends the task back to `return_to`, or on to Orient (`full`) or Plan (`lean`).
 

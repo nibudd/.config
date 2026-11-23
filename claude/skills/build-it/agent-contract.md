@@ -68,7 +68,7 @@ ASK
 <the text for the user>
 ```
 
-The dispatcher shows that text to the user verbatim. Then it sends you the user's reply, and you continue with your context. Ask one question per turn unless your agent definition says otherwise.
+The dispatcher shows that text to the user verbatim. Then it sends you the user's reply, and you continue with your context. Ask one question per turn unless your agent definition or `agendas.md` says otherwise.
 
 Write text for the user in the user's `colleague` output style: complete sentences, the conclusion first, no filler. At a decision gate, use the gate shape in the user's CLAUDE.md: number each item, give the question in one sentence that ends in `?`, each option in one or two sentences, then a recommendation and its reason in one sentence.
 
